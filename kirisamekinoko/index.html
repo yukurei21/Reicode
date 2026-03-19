@@ -3,1819 +3,1209 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>霧雨魔法キノコ園</title>
+<title>霧雨魔法キノコ園 v3</title>
 <style>
-* { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
-:root {
-  --c-bg: #1a1208;
-  --c-panel: #221810;
-  --c-border: #6b4226;
-  --c-border-light: #a0623a;
-  --c-cream: #f5e6c8;
-  --c-gold: #d4a017;
-  --c-green: #4a7c2f;
-  --c-green-l: #7ab648;
-  --c-brown: #3d2b1f;
-  --c-brown-m: #5c3d2e;
-  --c-red: #c0392b;
-  --c-blue: #2471a3;
-  --c-blue-l: #5dade2;
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+:root{
+  --bg:#1a1208;--panel:#221810;--bdr:#6b4226;--bdrl:#a0623a;
+  --cream:#f5e6c8;--gold:#d4a017;--grn:#4a7c2f;--grnl:#7ab648;
+  --brn:#3d2b1f;--brnm:#5c3d2e;--red:#c0392b;--blu:#2471a3;--blul:#5dade2;
 }
-html, body {
-  height: 100%; width: 100%;
-  overflow: hidden;
-  background: var(--c-bg);
-  font-family: 'Courier New', monospace;
-  color: var(--c-cream);
-  user-select: none;
-  image-rendering: pixelated;
-}
-#app {
-  display: flex;
-  height: 100dvh;
-  overflow: hidden;
-}
+html,body{height:100%;overflow:hidden;background:var(--bg);
+  font-family:'Courier New',monospace;color:var(--cream);
+  user-select:none;image-rendering:pixelated}
+#app{display:flex;height:100dvh;overflow:hidden}
 
-/* ===== LEFT MENU BAR ===== */
-#menu-bar {
-  width: 48px;
-  flex-shrink: 0;
-  background: linear-gradient(180deg, #0d0800, var(--c-panel));
-  border-right: 2px solid var(--c-border);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 6px 0;
-  gap: 4px;
-  z-index: 30;
-  overflow: hidden;
-}
-.mb-btn {
-  width: 40px; height: 40px;
-  background: linear-gradient(180deg, var(--c-brown-m), var(--c-brown));
-  border: 2px solid var(--c-border);
-  border-radius: 8px;
-  display: flex; flex-direction: column;
-  align-items: center; justify-content: center;
-  font-size: 18px; cursor: pointer;
-  transition: all .15s;
-  flex-shrink: 0;
-}
-.mb-btn .mb-sub { font-size: 6px; color: #8a7060; margin-top: 1px; }
-.mb-btn.active {
-  border-color: var(--c-gold);
-  background: linear-gradient(180deg, #4a3820, #2d2010);
-  box-shadow: 0 0 6px rgba(212,160,23,.4);
-}
-.mb-btn:active { transform: scale(.88); }
-.mb-sep { width: 32px; height: 1px; background: var(--c-border); margin: 2px 0; flex-shrink: 0; }
+/* ── MENU BAR ─────────────────── */
+#mb{width:48px;flex-shrink:0;background:linear-gradient(180deg,#0d0800,var(--panel));
+  border-right:2px solid var(--bdr);display:flex;flex-direction:column;
+  align-items:center;padding:5px 0;gap:3px;z-index:30;overflow:hidden}
+.mbb{width:40px;height:40px;flex-shrink:0;
+  background:linear-gradient(180deg,var(--brnm),var(--brn));
+  border:2px solid var(--bdr);border-radius:8px;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  font-size:17px;cursor:pointer;transition:all .12s}
+.mbb .s{font-size:6px;color:#8a7060;margin-top:1px}
+.mbb.active{border-color:var(--gold);background:linear-gradient(180deg,#4a3820,#2d2010);
+  box-shadow:0 0 6px rgba(212,160,23,.4)}
+.mbb:active{transform:scale(.88)}
+.mbsep{width:30px;height:1px;background:var(--bdr);flex-shrink:0;margin:2px 0}
 
-/* ===== MAIN COLUMN ===== */
-#main-col {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  min-width: 0;
-}
+/* ── MAIN COLUMN ──────────────── */
+#mc{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0}
 
-/* ===== HEADER ===== */
-#header {
-  background: linear-gradient(180deg, #0d0800, var(--c-panel));
-  border-bottom: 2px solid var(--c-border);
-  padding: 4px 8px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  flex-shrink: 0;
-  position: relative;
-  z-index: 25;
-}
-#header::after {
-  content:''; position:absolute; bottom:0; left:0; right:0; height:1px;
-  background: linear-gradient(90deg, transparent, var(--c-gold), transparent);
-  animation: shimmer 2.5s infinite;
-}
-@keyframes shimmer { 0%{transform:translateX(-100%)} 100%{transform:translateX(100%)} }
-.hstat { display:flex; flex-direction:column; align-items:center; min-width:55px; }
-.hstat-l { font-size:7px; color:#8a7060; text-transform:uppercase; letter-spacing:.5px; }
-.hstat-v { font-size:13px; font-weight:bold; color:var(--c-gold); }
-.hstat-v.g { color:var(--c-green-l); }
-.hstat-v.b { color:var(--c-blue-l); }
-#header-title { font-size:10px; color:var(--c-cream); text-align:center; opacity:.8; }
+/* ── HEADER ───────────────────── */
+#hdr{background:linear-gradient(180deg,#0d0800,var(--panel));
+  border-bottom:2px solid var(--bdr);padding:4px 8px;
+  display:flex;justify-content:space-between;align-items:center;
+  flex-shrink:0;position:relative;z-index:25}
+#hdr::after{content:'';position:absolute;bottom:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent,var(--gold),transparent);
+  animation:shimmer 2.5s infinite}
+@keyframes shimmer{0%{transform:translateX(-100%)}100%{transform:translateX(100%)}}
+.hs{display:flex;flex-direction:column;align-items:center;min-width:60px}
+.hsl{font-size:7px;color:#8a7060;text-transform:uppercase;letter-spacing:.5px}
+.hsv{font-size:13px;font-weight:bold;color:var(--gold)}
+.hsv.b{color:var(--blul)}.hsv.g{color:var(--grnl)}
+#htitle{font-size:10px;color:var(--cream);opacity:.8;text-align:center}
+#hrp{font-size:8px;color:#8a7060;text-align:center;margin-top:1px}
 
-/* ===== ISO VIEWPORT ===== */
-#iso-vp {
-  flex: 1;
-  overflow: hidden;
-  position: relative;
-  background: radial-gradient(ellipse at 40% 30%, rgba(60,100,30,.15) 0%, transparent 65%), var(--c-bg);
-  touch-action: none;
-}
-#iso-stage {
-  position: absolute;
-  transform-origin: 0 0;
-}
+/* ── ISO VIEWPORT ─────────────── */
+#vp{flex:1;overflow:hidden;position:relative;touch-action:none;
+  background:radial-gradient(ellipse at 45% 30%,rgba(60,100,30,.15) 0%,transparent 65%),var(--bg)}
+#st{position:absolute;transform-origin:0 0}
 
-/* ===== ISO TILE ===== */
-.t {
-  position: absolute;
-  cursor: pointer;
-  transform-style: preserve-3d;
-}
-.t-top, .t-left, .t-right { position: absolute; }
-.t-top {
-  clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
-  transition: filter .1s;
-}
-.t:hover .t-top { filter: brightness(1.25); }
-.t-left { clip-path: polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%); }
-.t-right { clip-path: polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%); }
+/* ── ISO TILES ────────────────── */
+.t{position:absolute;cursor:pointer}
+.tf{position:absolute;inset:0;pointer-events:none}
+.tt{clip-path:polygon(50% 0%,100% 31.25%,50% 62.5%,0% 31.25%);transition:filter .1s}
+.tl{clip-path:polygon(0% 31.25%,50% 62.5%,50% 100%,0% 68.75%)}
+.tr{clip-path:polygon(50% 62.5%,100% 31.25%,100% 68.75%,50% 100%)}
+.t:hover .tt{filter:brightness(1.3)}
+.t.hi .tt{filter:brightness(1.5)}
 
-/* ===== BUILDING SPRITE ===== */
-.bld {
-  position: absolute;
-  display: flex; flex-direction: column;
-  align-items: center;
-  pointer-events: none;
-  image-rendering: pixelated;
-}
-.bld-body {
-  border: 2px solid rgba(255,255,255,.15);
-  border-radius: 2px;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 18px;
-  position: relative;
-  image-rendering: pixelated;
-}
-.bld-name {
-  font-size: 6px; color: var(--c-cream);
-  background: rgba(0,0,0,.65); padding: 1px 3px;
-  border-radius: 2px; white-space: nowrap; margin-top: 1px;
-  max-width: 60px; overflow: hidden; text-overflow: ellipsis;
-}
-.bld-pb { width: 28px; height: 3px; background: rgba(0,0,0,.5); border-radius: 2px; overflow:hidden; margin-top:1px; }
-.bld-pf { height:100%; border-radius:2px; transition:width .4s; }
-.bld-combo {
-  position:absolute; top:-9px; right:-6px;
-  background:var(--c-gold); color:var(--c-brown);
-  font-size:6px; font-weight:bold;
-  padding:1px 3px; border-radius:3px;
-  animation:pop .25s ease-out;
-}
-@keyframes pop { 0%{transform:scale(0)} 60%{transform:scale(1.2)} 100%{transform:scale(1)} }
-.bld-ready {
-  position:absolute; top:-8px; left:50%; transform:translateX(-50%);
-  background:var(--c-green); color:white;
-  font-size:7px; padding:1px 4px; border-radius:3px;
-  animation:bounce .7s ease-in-out infinite alternate;
-}
-@keyframes bounce { 0%{transform:translateX(-50%) translateY(0)} 100%{transform:translateX(-50%) translateY(-3px)} }
+/* ── BUILDING SPRITE ──────────── */
+.bld{position:absolute;display:flex;flex-direction:column;align-items:center;
+  pointer-events:none;image-rendering:pixelated}
+.bb{border:1px solid rgba(255,255,255,.15);border-radius:2px;
+  display:flex;align-items:center;justify-content:center;position:relative}
+.bico{font-size:18px;display:block;pointer-events:none}
+.bnm{font-size:6px;color:var(--cream);background:rgba(0,0,0,.65);
+  padding:1px 3px;border-radius:2px;white-space:nowrap;
+  max-width:58px;overflow:hidden;text-overflow:ellipsis;margin-top:1px}
+.bpb{width:26px;height:3px;background:rgba(0,0,0,.5);border-radius:2px;overflow:hidden;margin-top:1px}
+.bpf{height:100%;border-radius:2px;transition:width .4s}
+.bco{position:absolute;top:-9px;right:-6px;
+  background:var(--gold);color:var(--brn);
+  font-size:6px;font-weight:bold;padding:1px 3px;border-radius:3px;
+  animation:cpop .25s ease-out}
+@keyframes cpop{0%{transform:scale(0)}60%{transform:scale(1.2)}100%{transform:scale(1)}}
+.brd{position:absolute;top:-9px;left:50%;transform:translateX(-50%);
+  background:var(--grn);color:#fff;font-size:7px;padding:1px 4px;border-radius:3px;
+  animation:rbounce .7s ease-in-out infinite alternate}
+@keyframes rbounce{0%{transform:translateX(-50%) translateY(0)}100%{transform:translateX(-50%) translateY(-3px)}}
 
-/* ===== CHARACTER ===== */
-.char {
-  position: absolute;
-  display: flex; flex-direction: column; align-items: center;
-  pointer-events: none;
-  image-rendering: pixelated;
-  transition: left .12s linear, top .12s linear;
-}
-.char-hat { font-size:12px; line-height:1; }
-.char-body {
-  width:14px; height:18px;
-  border-radius:2px 2px 0 0;
-  display:flex; align-items:center; justify-content:center;
-  font-size:11px; position:relative;
-  border: 1px solid rgba(255,255,255,.2);
-}
-.char-carry {
-  position:absolute; top:-9px; right:-5px;
-  font-size:10px;
-  animation:cb .4s ease-in-out infinite alternate;
-}
-@keyframes cb { 0%{transform:translateY(0)} 100%{transform:translateY(-2px)} }
-.char-shadow { width:10px; height:3px; background:rgba(0,0,0,.35); border-radius:50%; margin-top:0; }
-.char-st {
-  font-size:6px; background:rgba(0,0,0,.7);
-  padding:1px 3px; border-radius:2px; white-space:nowrap; margin-top:1px;
-}
+/* ── CHARACTER ────────────────── */
+.ch{position:absolute;display:flex;flex-direction:column;align-items:center;
+  pointer-events:none;image-rendering:pixelated;
+  transition:left .09s linear,top .09s linear}
+.chat{font-size:11px;line-height:1}
+.chb{width:14px;height:18px;border-radius:2px 2px 0 0;
+  display:flex;align-items:center;justify-content:center;
+  font-size:10px;position:relative;border:1px solid rgba(255,255,255,.2)}
+.chc{position:absolute;top:-9px;right:-5px;font-size:10px;
+  animation:cbob .45s ease-in-out infinite alternate}
+@keyframes cbob{0%{transform:translateY(0)}100%{transform:translateY(-2px)}}
+.chsh{width:10px;height:3px;background:rgba(0,0,0,.35);border-radius:50%}
+.chst{font-size:6px;background:rgba(0,0,0,.7);padding:1px 3px;border-radius:2px;white-space:nowrap;margin-top:1px}
 
-/* ===== PARTICLES ===== */
-.ptcl {
-  position:fixed; pointer-events:none; z-index:99;
-  font-size:11px; font-weight:bold;
-  animation:pfloat .9s ease-out forwards;
-}
-@keyframes pfloat {
-  0%{opacity:1;transform:translateY(0) scale(1)}
-  100%{opacity:0;transform:translateY(-44px) scale(.7)}
-}
+/* ── PARTICLES ────────────────── */
+.ptcl{position:fixed;pointer-events:none;z-index:99;
+  font-size:11px;font-weight:bold;animation:pfloat .9s ease-out forwards}
+@keyframes pfloat{0%{opacity:1;transform:translateY(0) scale(1)}100%{opacity:0;transform:translateY(-44px) scale(.7)}}
 
-/* ===== SLIDE PANEL ===== */
-#slide-panel {
-  position:fixed; left:48px; top:0; bottom:0;
-  width:0; overflow:hidden;
-  background: linear-gradient(90deg, var(--c-panel), rgba(26,18,8,.97));
-  border-right:2px solid var(--c-border);
-  z-index:29;
-  transition:width .2s ease;
-  display:flex; flex-direction:column;
-}
-#slide-panel.open { width:170px; }
-#sp-inner { padding:6px 5px; overflow-y:auto; flex:1; min-width:170px; }
-#sp-inner::-webkit-scrollbar { width:3px; }
-#sp-inner::-webkit-scrollbar-thumb { background:var(--c-border-light); border-radius:2px; }
-.sp-title {
-  font-size:8px; color:var(--c-gold);
-  text-transform:uppercase; letter-spacing:1px;
-  margin:6px 0 3px; padding-bottom:2px;
-  border-bottom:1px solid var(--c-border);
-}
-.sp-item {
-  display:flex; align-items:center; gap:5px;
-  padding:6px 5px; border-radius:6px; cursor:pointer;
-  transition:background .12s; margin-bottom:1px;
-}
-.sp-item:hover { background:rgba(255,255,255,.06); }
-.sp-item.sel { background:rgba(74,124,47,.2); border:1px solid var(--c-green); }
-.sp-item.locked { opacity:.4; }
-.sp-icon { font-size:16px; flex-shrink:0; }
-.sp-info { flex:1; overflow:hidden; }
-.sp-name { font-size:9px; font-weight:bold; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-.sp-cost { font-size:8px; color:var(--c-gold); }
+/* ── SLIDE PANEL ──────────────── */
+#sp{position:fixed;left:48px;top:0;bottom:0;width:0;overflow:hidden;
+  background:linear-gradient(90deg,var(--panel),rgba(26,18,8,.97));
+  border-right:2px solid var(--bdr);z-index:29;transition:width .2s ease;
+  display:flex;flex-direction:column}
+#sp.open{width:168px}
+#spi{padding:6px 5px;overflow-y:auto;flex:1;min-width:168px}
+#spi::-webkit-scrollbar{width:3px}
+#spi::-webkit-scrollbar-thumb{background:var(--bdrl);border-radius:2px}
+.spt{font-size:8px;color:var(--gold);text-transform:uppercase;letter-spacing:1px;
+  margin:6px 0 3px;padding-bottom:2px;border-bottom:1px solid var(--bdr)}
+.spi{display:flex;align-items:center;gap:5px;padding:5px;
+  border-radius:6px;cursor:pointer;transition:background .12s;margin-bottom:1px}
+.spi:hover{background:rgba(255,255,255,.06)}
+.spi.sel{background:rgba(74,124,47,.2);border:1px solid var(--grn)}
+.spi.lk{opacity:.4;pointer-events:none}
+.spico{font-size:16px;flex-shrink:0}
+.spinf{flex:1;overflow:hidden}
+.spn{font-size:9px;font-weight:bold;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.spc{font-size:8px;color:var(--gold)}
+.mgrid{display:grid;grid-template-columns:1fr 1fr;gap:3px}
+.mitem{padding:4px;border-radius:5px;cursor:pointer;
+  background:rgba(255,255,255,.04);border:1px solid var(--bdr);transition:background .12s}
+.mitem:hover{background:rgba(74,124,47,.2)}
+.mitem.sel{background:rgba(74,124,47,.25);border-color:var(--grn)}
 
-/* ===== DETAIL PANEL ===== */
-#detail-panel {
-  position:fixed; bottom:0; left:0; right:0;
-  background:linear-gradient(0deg, #0d0800 0%, rgba(26,18,8,.97) 100%);
-  border-top:2px solid var(--c-border);
-  z-index:28;
-  transform:translateY(100%);
-  transition:transform .2s ease;
-  max-height:42vh;
-  display:flex; flex-direction:column;
-}
-#detail-panel.open { transform:translateY(0); }
-#dp-scroll { overflow-y:auto; padding:10px 12px 12px; flex:1; }
-#dp-scroll::-webkit-scrollbar { width:3px; }
-#dp-scroll::-webkit-scrollbar-thumb { background:var(--c-border-light); }
-.dp-head { display:flex; gap:10px; align-items:flex-start; margin-bottom:6px; }
-.dp-icon { font-size:30px; flex-shrink:0; }
-.dp-name { font-size:14px; font-weight:bold; color:var(--c-gold); margin-bottom:1px; }
-.dp-sub { font-size:10px; color:var(--c-green-l); margin-bottom:3px; }
-.dp-flavor {
-  font-size:9px; color:#c4a882; font-style:italic;
-  line-height:1.45; padding:5px 8px;
-  background:rgba(255,255,255,.04);
-  border-left:2px solid var(--c-border-light);
-  border-radius:0 3px 3px 0;
-  margin-bottom:7px;
-}
-.dp-tags { display:flex; flex-wrap:wrap; gap:3px; margin-bottom:7px; }
-.dp-tag {
-  font-size:8px; padding:2px 6px;
-  border-radius:8px;
-  background:rgba(74,124,47,.25); border:1px solid var(--c-green);
-  color:var(--c-green-l);
-}
-.dp-tag.gold { background:rgba(212,160,23,.2); border-color:var(--c-gold); color:var(--c-gold); }
-.dp-tag.red { background:rgba(192,57,43,.2); border-color:var(--c-red); color:#e74c3c; }
-.dp-btns { display:flex; gap:6px; }
-.dp-btn {
-  flex:1; padding:9px 8px;
-  border-radius:8px; font-size:12px; font-weight:bold; cursor:pointer;
-  transition:all .12s; border:2px solid;
-}
-.dp-btn:active { transform:scale(.95); }
-.dp-btn.primary { background:linear-gradient(180deg,var(--c-green),#2d4a1e); border-color:var(--c-green-l); color:var(--c-cream); }
-.dp-btn.secondary { background:transparent; border-color:var(--c-border); color:#8a7060; }
-.dp-btn:disabled { opacity:.4; cursor:not-allowed; }
-.dp-close {
-  position:absolute; top:6px; right:8px;
-  width:24px; height:24px;
-  background:var(--c-brown); border:1px solid var(--c-border);
-  border-radius:50%; font-size:12px; cursor:pointer;
-  display:flex; align-items:center; justify-content:center; color:#8a7060;
-}
+/* ── DETAIL PANEL ─────────────── */
+#dp{position:fixed;bottom:0;left:0;right:0;
+  background:linear-gradient(0deg,#0d0800,rgba(26,18,8,.98));
+  border-top:2px solid var(--bdr);z-index:28;
+  transform:translateY(100%);transition:transform .2s ease;
+  max-height:43vh;display:flex;flex-direction:column}
+#dp.open{transform:translateY(0)}
+#dps{overflow-y:auto;padding:9px 12px 12px;flex:1}
+#dps::-webkit-scrollbar{width:3px}
+#dps::-webkit-scrollbar-thumb{background:var(--bdrl)}
+.dphd{display:flex;gap:10px;align-items:flex-start;margin-bottom:5px}
+.dpico{font-size:28px;flex-shrink:0}
+.dpnm{font-size:14px;font-weight:bold;color:var(--gold);margin-bottom:1px}
+.dpsub{font-size:10px;color:var(--grnl)}
+.dpfl{font-size:9px;color:#c4a882;font-style:italic;line-height:1.45;
+  padding:5px 8px;background:rgba(255,255,255,.04);
+  border-left:2px solid var(--bdrl);border-radius:0 3px 3px 0;margin:5px 0 7px}
+.dptags{display:flex;flex-wrap:wrap;gap:3px;margin-bottom:7px}
+.dptag{font-size:8px;padding:2px 6px;border-radius:8px;
+  background:rgba(74,124,47,.25);border:1px solid var(--grn);color:var(--grnl)}
+.dptag.g{background:rgba(212,160,23,.2);border-color:var(--gold);color:var(--gold)}
+.dptag.r{background:rgba(192,57,43,.2);border-color:var(--red);color:#e74c3c}
+.dpbtns{display:flex;gap:5px}
+.dpbtn{flex:1;padding:9px 6px;border-radius:8px;font-size:12px;font-weight:bold;
+  cursor:pointer;transition:all .12s;border:2px solid}
+.dpbtn:active{transform:scale(.95)}
+.dpbtn.p{background:linear-gradient(180deg,var(--grn),#2d4a1e);border-color:var(--grnl);color:var(--cream)}
+.dpbtn.s{background:transparent;border-color:var(--bdr);color:#8a7060}
+.dpbtn:disabled{opacity:.4;cursor:not-allowed}
+.dpcls{position:absolute;top:5px;right:7px;width:22px;height:22px;
+  background:var(--brn);border:1px solid var(--bdr);border-radius:50%;
+  font-size:11px;cursor:pointer;display:flex;align-items:center;justify-content:center;color:#8a7060;z-index:1}
 
-/* ===== EVENT BANNER ===== */
-#banner {
-  position:fixed; top:52px; left:50%;
-  transform:translateX(-50%);
-  background:linear-gradient(90deg, #0d0800, #2d1f10, #0d0800);
-  border:2px solid var(--c-gold);
-  border-radius:10px; padding:6px 14px;
-  font-size:11px; font-weight:bold; color:var(--c-gold);
-  text-shadow:0 0 7px rgba(212,160,23,.8);
-  z-index:50; opacity:0; pointer-events:none;
-  max-width:85vw; text-align:center; white-space:normal;
-}
-#banner.show { animation:bshow 3s ease forwards; }
-@keyframes bshow {
+/* ── CARDS ────────────────────── */
+.card{background:rgba(255,255,255,.04);border:1px solid var(--bdr);
+  border-radius:5px;padding:6px;margin-bottom:5px}
+.cardh{display:flex;justify-content:space-between;align-items:center;margin-bottom:2px}
+.cardn{font-size:10px;font-weight:bold}
+.cards{font-size:8px;color:var(--gold)}
+.cardd{font-size:8px;color:#8a7060;margin-bottom:4px;line-height:1.35}
+.bar{height:4px;background:rgba(255,255,255,.1);border-radius:2px;overflow:hidden;margin-bottom:4px}
+.barf{height:100%;background:linear-gradient(90deg,var(--blu),var(--blul))}
+.barf.g{background:linear-gradient(90deg,var(--grn),var(--grnl))}
+.minibtn{width:100%;padding:4px;background:rgba(36,113,163,.2);
+  border:1px solid var(--blu);border-radius:3px;color:var(--blul);font-size:9px;cursor:pointer}
+.minibtn:disabled{opacity:.4;cursor:not-allowed}
+.minibtn.g{background:rgba(74,124,47,.2);border-color:var(--grn);color:var(--grnl)}
+.scwrap{display:flex;align-items:center;gap:7px}
+.scav{font-size:20px}.scnm{font-size:10px;font-weight:bold}
+.scrl{font-size:8px;color:#8a7060}
+.scsts{display:flex;gap:4px;margin-top:2px}
+.scst{font-size:7px;background:rgba(255,255,255,.06);padding:1px 3px;border-radius:2px}
+
+/* ── BANNER ───────────────────── */
+#bnr{position:fixed;top:54px;left:50%;transform:translateX(-50%);
+  background:linear-gradient(90deg,#0d0800,#2d1f10,#0d0800);
+  border:2px solid var(--gold);border-radius:10px;padding:6px 14px;
+  font-size:11px;font-weight:bold;color:var(--gold);
+  text-shadow:0 0 7px rgba(212,160,23,.8);z-index:50;opacity:0;pointer-events:none;
+  max-width:86vw;text-align:center}
+#bnr.show{animation:bshow 3.2s ease forwards}
+@keyframes bshow{
   0%{opacity:0;transform:translateX(-50%) translateY(-8px)}
   12%{opacity:1;transform:translateX(-50%) translateY(0)}
-  80%{opacity:1}
-  100%{opacity:0;transform:translateX(-50%) translateY(-8px)}
-}
+  78%{opacity:1}100%{opacity:0;transform:translateX(-50%) translateY(-8px)}}
 
-/* ===== RESEARCH CARDS ===== */
-.rc {
-  background:rgba(255,255,255,.04); border:1px solid var(--c-border);
-  border-radius:5px; padding:6px; margin-bottom:5px;
-}
-.rc-h { display:flex; justify-content:space-between; margin-bottom:2px; }
-.rc-n { font-size:10px; font-weight:bold; }
-.rc-s { font-size:8px; color:var(--c-gold); }
-.rc-d { font-size:8px; color:#8a7060; margin-bottom:4px; }
-.rc-bar { height:4px; background:rgba(255,255,255,.1); border-radius:2px; overflow:hidden; margin-bottom:4px; }
-.rc-bf { height:100%; background:linear-gradient(90deg, var(--c-blue), var(--c-blue-l)); }
-.rc-btn {
-  width:100%; padding:4px;
-  background:rgba(36,113,163,.2); border:1px solid var(--c-blue);
-  border-radius:3px; color:var(--c-blue-l); font-size:9px; cursor:pointer;
-}
-.rc-btn:disabled { opacity:.4; cursor:not-allowed; }
-
-/* ===== STAFF CARDS ===== */
-.sc {
-  background:rgba(255,255,255,.04); border:1px solid var(--c-border);
-  border-radius:5px; padding:6px; margin-bottom:5px;
-  display:flex; align-items:center; gap:7px;
-}
-.sc-av { font-size:20px; }
-.sc-inf { flex:1; }
-.sc-n { font-size:10px; font-weight:bold; }
-.sc-r { font-size:8px; color:#8a7060; }
-.sc-sts { display:flex; gap:4px; margin-top:2px; }
-.sc-st { font-size:7px; background:rgba(255,255,255,.06); padding:1px 3px; border-radius:2px; }
-.hire-b {
-  padding:4px 6px; background:rgba(74,124,47,.3);
-  border:1px solid var(--c-green); border-radius:4px;
-  color:var(--c-green-l); font-size:9px; cursor:pointer;
-  flex-shrink:0;
-}
-.hire-b:disabled { opacity:.4; cursor:not-allowed; }
-
-/* ===== LOG PANEL ===== */
-.log-entry { padding:3px 0; border-bottom:1px solid rgba(255,255,255,.04); font-size:9px; }
-.log-day { font-size:7px; color:#8a7060; }
-
-/* ===== RECIPE CARDS ===== */
-.recipe-card {
-  background:rgba(255,255,255,.04); border:1px solid var(--c-border);
-  border-radius:5px; padding:6px; margin-bottom:5px;
-}
-.recipe-name { font-size:10px; font-weight:bold; color:var(--c-gold); margin-bottom:2px; }
-.recipe-ing { font-size:8px; color:#8a7060; margin-bottom:4px; }
-.recipe-eff { font-size:8px; color:var(--c-green-l); }
-
-/* ===== WEATHER BADGE ===== */
-#weather-badge {
-  position:fixed; top:4px; right:4px;
-  font-size:9px; background:rgba(0,0,0,.6);
-  border:1px solid var(--c-border); border-radius:5px;
-  padding:2px 5px; z-index:26; color:#c4a882;
-}
-
-/* ===== SAVE INDICATOR ===== */
-#save-ind {
-  position:fixed; top:4px; right:70px;
-  font-size:8px; color:#8a7060;
-  z-index:26; opacity:0; transition:opacity .5s;
-}
-#save-ind.show { opacity:1; }
+#wbdg{position:fixed;top:4px;right:4px;font-size:9px;
+  background:rgba(0,0,0,.6);border:1px solid var(--bdr);
+  border-radius:5px;padding:2px 5px;z-index:26;color:#c4a882}
+#sind{position:fixed;top:4px;right:70px;font-size:8px;color:#8a7060;
+  z-index:26;opacity:0;transition:opacity .5s}
+#sind.show{opacity:1}
+.logent{padding:3px 0;border-bottom:1px solid rgba(255,255,255,.04);font-size:9px;line-height:1.4}
+.logd{font-size:7px;color:#8a7060}
 </style>
 </head>
 <body>
 <div id="app">
-  <div id="menu-bar">
-    <div class="mb-btn" data-tab="build" onclick="tabClick('build')">🏗️<span class="mb-sub">建設</span></div>
-    <div class="mb-btn" data-tab="research" onclick="tabClick('research')">🔬<span class="mb-sub">研究</span></div>
-    <div class="mb-btn" data-tab="staff" onclick="tabClick('staff')">👤<span class="mb-sub">人員</span></div>
-    <div class="mb-sep"></div>
-    <div class="mb-btn" data-tab="kitchen" onclick="tabClick('kitchen')">👩‍🍳<span class="mb-sub">料理</span></div>
-    <div class="mb-btn" data-tab="log" onclick="tabClick('log')">📋<span class="mb-sub">ログ</span></div>
-    <div class="mb-sep"></div>
-    <div class="mb-btn" onclick="manualSave()" title="セーブ">💾<span class="mb-sub">保存</span></div>
-    <div class="mb-btn" id="tool-remove-btn" onclick="toggleRemoveTool()" title="撤去">🗑️<span class="mb-sub">撤去</span></div>
+  <div id="mb">
+    <div class="mbb" data-tab="build"    onclick="tabClick('build')">🏗️<span class="s">建設</span></div>
+    <div class="mbb" data-tab="research" onclick="tabClick('research')">🔬<span class="s">研究</span></div>
+    <div class="mbb" data-tab="staff"    onclick="tabClick('staff')">👤<span class="s">人員</span></div>
+    <div class="mbsep"></div>
+    <div class="mbb" data-tab="kitchen"  onclick="tabClick('kitchen')">🍳<span class="s">料理</span></div>
+    <div class="mbb" data-tab="log"      onclick="tabClick('log')">📋<span class="s">ログ</span></div>
+    <div class="mbsep"></div>
+    <div class="mbb" id="brm" onclick="toggleRm()">🗑️<span class="s">撤去</span></div>
+    <div class="mbb" onclick="manualSave()">💾<span class="s">保存</span></div>
   </div>
-  <div id="main-col">
-    <div id="header">
-      <div class="hstat"><span class="hstat-l">資金</span><span class="hstat-v" id="h-money">¥1,000</span></div>
-      <div id="header-title">🍄 霧雨魔法キノコ園</div>
-      <div class="hstat"><span class="hstat-l">日付</span><span class="hstat-v b" id="h-date">1年1日</span></div>
+  <div id="mc">
+    <div id="hdr">
+      <div class="hs"><span class="hsl">資金</span><span class="hsv" id="hmoney">¥1,000</span></div>
+      <div><div id="htitle">🍄 霧雨魔法キノコ園</div><div id="hrp">RP:0 | 満足:40%</div></div>
+      <div class="hs"><span class="hsl">日付</span><span class="hsv b" id="hdate">1年1日</span></div>
     </div>
-    <div id="iso-vp">
-      <div id="iso-stage"></div>
-    </div>
+    <div id="vp"><div id="st"></div></div>
   </div>
 </div>
-
-<!-- Slide panel -->
-<div id="slide-panel"><div id="sp-inner"></div></div>
-
-<!-- Detail panel -->
-<div id="detail-panel">
-  <button class="dp-close" onclick="closeDetail()">✕</button>
-  <div id="dp-scroll"></div>
+<div id="sp"><div id="spi"></div></div>
+<div id="dp">
+  <button class="dpcls" onclick="closeDP()">✕</button>
+  <div id="dps"></div>
 </div>
-
-<!-- Banner -->
-<div id="banner"></div>
-<div id="weather-badge">☀️ 晴れ</div>
-<div id="save-ind">💾 保存済み</div>
+<div id="bnr"></div>
+<div id="wbdg">☀️ 晴れ</div>
+<div id="sind">💾 保存済み</div>
 
 <script>
 'use strict';
-// ======================================================
+// ═══════════════════════════════════════════════
+// CONFIG
+// ═══════════════════════════════════════════════
+const TW=60,TH=30,TD=18,TILE_H=TH+TD,COLS=12,ROWS=10;
+const TICK_MS=100,GAME_TICKS=5;
+const gTPS=1000/TICK_MS/GAME_TICKS; // game-logic ticks per real second = 2
+const DAY_GTICKS=180; // 180 game ticks = 90 real seconds
+
+// ═══════════════════════════════════════════════
 // DATA
-// ======================================================
-const TW=60, TH=30, TD=18, COLS=12, ROWS=10;
-
-const MUSHROOMS = [
-  {id:'normal',   name:'ふつうのキノコ', icon:'🍄', growTime:20, yield:60,  wilts:0,  desc:'全ステータスが平均的な標準キノコ。まずはここから始めるべきだぜ。', cost:40, color:'#8b5e3c'},
-  {id:'moko',     name:'もこもこキノコ', icon:'🟤', growTime:10, yield:40,  wilts:0,  desc:'成長が早く、枯れにくい。初心者の味方だ。手数で稼ぐタイプだぜ。', cost:35, color:'#7a5030'},
-  {id:'shittori', name:'しっとりキノコ', icon:'💧', growTime:22, yield:80,  wilts:0,  desc:'湿度が大好き。水路の隣に置くと収穫量が1.5倍になるぞ。', cost:60, color:'#3a6080'},
-  {id:'tsuyatsuya',name:'つやつやキノコ',icon:'✨', growTime:28, yield:130, wilts:0,  desc:'見た目が良く売値が高い高級品。里のお金持ちに大人気だぜ。', cost:90, color:'#7a6030'},
-  {id:'chibi',    name:'ちびキノコ群生', icon:'🟢', growTime:15, yield:50,  wilts:0,  desc:'1マスに群生する密集型。収穫数が3倍になる特殊な菌類だぜ。', cost:55, color:'#2a5020'},
-  {id:'nobisugi', name:'のびすぎキノコ', icon:'🌿', growTime:18, yield:55,  wilts:0,  desc:'縦に伸びすぎて笑える形をしている。見た人の満足度が上がるぞ。', cost:50, color:'#3a6020'},
-  {id:'korokoro', name:'ころころキノコ', icon:'🟡', growTime:16, yield:65,  wilts:0,  desc:'ころころ転がりそうな愛らしい形。客を引き寄せる不思議な魅力がある。', cost:60, color:'#806020'},
-  {id:'subesube', name:'すべすべキノコ', icon:'🍚', growTime:20, yield:70,  wilts:0,  desc:'表面がツルツルで料理用に最適。キッチンで調理すると満足度が大幅UP。', cost:65, color:'#6a5a40'},
-  {id:'zarazara', name:'ざらざらキノコ', icon:'🟫', growTime:25, yield:60,  wilts:0,  desc:'ザラザラした食感が乾燥に向く。乾燥機に入れると価値が2倍になるぞ。', cost:55, color:'#5a4030'},
-  {id:'dekame',   name:'でかめキノコ',   icon:'🎪', growTime:60, yield:350, wilts:0,  desc:'超希少種。収穫は非常に遅いが単価が段違いに高い夢の一品だ！', cost:200, color:'#6a3060'},
-  {id:'hyoro',    name:'ひょろキノコ',   icon:'🌱', growTime:6,  yield:35,  wilts:15, desc:'爆速で育つが放置するとすぐ枯れる。素早い収穫が肝心だぜ！', cost:30, color:'#2a6020'},
-  {id:'kasahiro', name:'かさ広キノコ',   icon:'☂️',  growTime:32, yield:100, wilts:0,  desc:'傘が広がった映え重視のキノコ。観光客の満足度を大きく引き上げる。', cost:120, color:'#4a3080'},
+// ═══════════════════════════════════════════════
+const MSH=[
+  {id:'normal',    name:'ふつうのキノコ',  ico:'🍄', cost:40,  gt:20, yld:60,  w:0,  col:'#8b5e3c'},
+  {id:'moko',      name:'もこもこキノコ',  ico:'🟤', cost:35,  gt:10, yld:40,  w:0,  col:'#7a5030'},
+  {id:'shittori',  name:'しっとりキノコ',  ico:'💧', cost:60,  gt:22, yld:80,  w:0,  col:'#3a6080'},
+  {id:'tsuyatsuya',name:'つやつやキノコ',  ico:'✨', cost:90,  gt:28, yld:130, w:0,  col:'#7a6030'},
+  {id:'chibi',     name:'ちびキノコ群生',  ico:'🟢', cost:55,  gt:15, yld:50,  w:0,  col:'#2a5020', multi:3},
+  {id:'nobisugi',  name:'のびすぎキノコ',  ico:'🌿', cost:50,  gt:18, yld:55,  w:0,  col:'#3a6020', sat:8},
+  {id:'korokoro',  name:'ころころキノコ',  ico:'🟡', cost:60,  gt:16, yld:65,  w:0,  col:'#806020', attract:true},
+  {id:'subesube',  name:'すべすべキノコ',  ico:'🍚', cost:65,  gt:20, yld:70,  w:0,  col:'#6a5a40', kitchen:true},
+  {id:'zarazara',  name:'ざらざらキノコ',  ico:'🟫', cost:55,  gt:25, yld:60,  w:0,  col:'#5a4030'},
+  {id:'dekame',    name:'でかめキノコ',    ico:'🎪', cost:200, gt:60, yld:350, w:0,  col:'#6a3060'},
+  {id:'hyoro',     name:'ひょろキノコ',    ico:'🌱', cost:30,  gt:6,  yld:35,  w:15, col:'#2a6020'},
+  {id:'kasahiro',  name:'かさ広キノコ',    ico:'☂️', cost:120, gt:32, yld:100, w:0,  col:'#4a3080', tour:12},
 ];
-
-const BUILDINGS = {
-  // infra
-  path:{id:'path',cat:'infra',name:'土の道',icon:'🟫',cost:20,flavor:'踏み固めた土道だ。従業員が道を好んで通るようになり、移動効率が上がる。',effects:['従業員移動速度×1.5'],combos:['shelf','collection_box'],color:'#5c4030',buildTime:0,w:1,h:1},
-  water:{id:'water',cat:'infra',name:'湧き水の水路',icon:'💧',cost:180,flavor:'冷たい水はキノコの故郷。隣接した棚の成長速度を20%上げる魔法のインフラだ。',effects:['隣接棚 成長速度+20%','しっとりキノコ 収穫量×1.5'],combos:['shelf','shelf_shittori'],color:'#1a3a5a',buildTime:1,w:1,h:1,adjGrow:0.2},
-  magic_lamp:{id:'magic_lamp',cat:'infra',name:'魔法のランプ',icon:'🪔',cost:250,flavor:'謎の光を放つ魔法製品。光系キノコの育ちを特別に促進するぞ。',effects:['隣接棚 収益+30%','夜間成長ボーナス'],combos:['shelf'],color:'#4a3820',buildTime:2,w:1,h:1,adjValue:0.3},
-  dryer:{id:'dryer',cat:'infra',name:'乾燥機',icon:'🔆',cost:300,flavor:'ざらざらキノコを乾燥させると価値が2倍になる。電力は私の魔法で補ってやる。',effects:['ざらざらキノコ 価値×2.0','加工時間:8秒'],combos:['shelf_zarazara'],color:'#5a3a20',buildTime:2,w:1,h:1},
-  // farms
-  shelf:{id:'shelf',cat:'farm',name:'栽培棚 (汎用)',icon:'🪵',cost:100,flavor:'どんなキノコでも育てられる基本の棚。まずこれがないと始まらないぜ。',effects:['キノコ栽培可能','容量: 1種'],combos:['water','magic_lamp','path'],color:'#7b5e3a',buildTime:0,w:1,h:1,isShelf:true},
-  // facilities
-  collection_box:{id:'collection_box',cat:'facility',name:'魔理沙の集荷箱',icon:'📦',cost:300,flavor:'ここにキノコを放り込めば、私が責任を持って換金してくるぜ。……少し手数料をもらうがな！',effects:['換金拠点(必須)','手数料5%'],combos:['path'],color:'#5a3010',buildTime:0,w:1,h:1,isDropoff:true},
-  bench:{id:'bench',cat:'facility',name:'休憩ベンチ',icon:'🪑',cost:120,flavor:'従業員が一休みできる場所。疲労回復が早まるぞ。',effects:['従業員疲労回復+35%','観光満足+5%'],combos:['path','teahouse'],color:'#5c4030',buildTime:0,w:1,h:1},
-  kitchen:{id:'kitchen',cat:'facility',name:'キノコキッチン',icon:'🍳',cost:500,flavor:'収穫物を料理に変える魔法の調理場だ。レシピを解放すれば料理の幅が広がるぞ！',effects:['収穫→料理変換','鮮度ボーナス(新鮮ほど高単価)','レシピ解放可能'],combos:['shelf','collection_box'],color:'#4a2a10',buildTime:3,w:1,h:1,isKitchen:true},
-  teahouse:{id:'teahouse',cat:'facility',name:'茶屋',icon:'🍵',cost:600,flavor:'里から来た客に熱いお茶を振る舞う。口コミで観光客が増えるかもな。',effects:['観光収益+20%','従業員疲労回復+15%','研究P+3/日'],combos:['bench','path'],color:'#4a3010',buildTime:3,w:1,h:1},
-  lab:{id:'lab',cat:'facility',name:'怪しい研究室',icon:'🔬',cost:700,flavor:'私の手作り研究施設だ。爆発しないことを祈ってくれ。',effects:['研究P+6/日','突然変異率+5%','新種解放'],combos:['kitchen','shelf'],color:'#3a2040',buildTime:4,w:1,h:1},
-  greenhouse:{id:'greenhouse',cat:'facility',name:'温室',icon:'🌿',cost:1000,flavor:'全ての棚を最適環境で管理する。天候の影響を受けなくなるぞ！',effects:['全棚成長+15%','天候デバフ無効'],combos:['water','lab'],color:'#1a4a1a',buildTime:5,w:1,h:1,unlockResearch:'agri1'},
+const MDESC={
+  normal:'全ステータスが平均的な標準キノコ。まずはここから始めるべきだぜ。',
+  moko:'成長が早く、枯れにくい。初心者の味方。手数で稼ぐタイプだぜ。',
+  shittori:'湿度が大好き。水路の隣に置くと収穫量が1.5倍になるぞ。',
+  tsuyatsuya:'見た目が良く売値が高い高級品。里のお金持ちに大人気だぜ。',
+  chibi:'1マスに群生する密集型。収穫数が3倍になる特殊な菌類だぜ。',
+  nobisugi:'縦に伸びすぎて笑える形をしている。見た人の満足度が上がるぞ。',
+  korokoro:'ころころ転がりそうな愛らしい形。客を引き寄せる不思議な魅力がある。',
+  subesube:'表面がツルツルで料理用に最適。キッチンで調理すると満足度が大幅UP。',
+  zarazara:'ザラザラした食感が乾燥に向く。乾燥機の隣だと価値が2倍になるぞ。',
+  dekame:'超希少種。収穫は非常に遅いが単価が段違いに高い夢の一品だ！',
+  hyoro:'爆速で育つが放置するとすぐ枯れる。素早い収穫が肝心だぜ！',
+  kasahiro:'傘が広がった映え重視のキノコ。観光客の満足度を大きく引き上げる。',
 };
 
-const BUILD_CATS = {
-  farm:    {label:'🌱 栽培', items:['shelf']},
-  infra:   {label:'⚙️ インフラ', items:['path','water','magic_lamp','dryer']},
-  facility:{label:'🏠 施設', items:['collection_box','bench','kitchen','teahouse','lab','greenhouse']},
+const BLD={
+  path:{id:'path',cat:'infra',name:'土の道',ico:'🟫',cost:20,
+    fl:'踏み固めた土道だ。従業員が道を好んで通るようになり移動効率が上がる。',
+    eff:['従業員移動速度×1.5(道優先)'],cb:['shelf','collection_box'],
+    col:'#5c4030',bt:0,isPath:true},
+  water:{id:'water',cat:'infra',name:'湧き水の水路',ico:'💧',cost:180,
+    fl:'冷たい水はキノコの故郷。隣接した棚の成長速度を20%上げる魔法のインフラだ。',
+    eff:['隣接棚 成長速度+20%','しっとりキノコ 収穫量×1.5'],cb:['shelf'],
+    col:'#1a3a5a',bt:10,adjG:0.2},
+  magic_lamp:{id:'magic_lamp',cat:'infra',name:'魔法のランプ',ico:'🪔',cost:250,
+    fl:'謎の光を放つ魔法製品。隣接する棚の収益を30%増やすぞ。',
+    eff:['隣接棚 収益+30%'],cb:['shelf'],col:'#4a3820',bt:20,adjV:0.3},
+  dryer:{id:'dryer',cat:'infra',name:'乾燥機',ico:'🔆',cost:300,
+    fl:'ざらざらキノコを乾燥させると価値が2倍になる。電力は私の魔法で補ってやる。',
+    eff:['ざらざらキノコ 価値×2.0'],cb:['shelf'],col:'#5a3a20',bt:20},
+  shelf:{id:'shelf',cat:'farm',name:'栽培棚 (汎用)',ico:'🪵',cost:100,
+    fl:'どんなキノコでも育てられる基本の棚。まずこれがないと始まらないぜ。',
+    eff:['キノコ栽培可能','容量:1種'],cb:['water','magic_lamp','path'],
+    col:'#7b5e3a',bt:0,isShelf:true},
+  collection_box:{id:'collection_box',cat:'facility',name:'魔理沙の集荷箱',ico:'📦',cost:300,
+    fl:'ここにキノコを放り込めば、私が責任を持って換金してくるぜ。……少し手数料をもらうがな！',
+    eff:['換金拠点(必須)','手数料5%'],cb:['path'],col:'#5a3010',bt:0,isDrop:true},
+  bench:{id:'bench',cat:'facility',name:'休憩ベンチ',ico:'🪑',cost:120,
+    fl:'従業員が一休みできる場所。疲労回復が早まるぞ。',
+    eff:['従業員疲労回復+35%','観光満足+5%'],cb:['path','teahouse'],
+    col:'#5c4030',bt:0,isBench:true},
+  kitchen:{id:'kitchen',cat:'facility',name:'キノコキッチン',ico:'🍳',cost:500,
+    fl:'収穫物を料理に変える魔法の調理場だ！鮮度が高いほど高単価になるぞ。',
+    eff:['収穫→料理変換','鮮度ボーナス','レシピ解放可能'],cb:['shelf','collection_box'],
+    col:'#4a2a10',bt:30,isKitchen:true},
+  teahouse:{id:'teahouse',cat:'facility',name:'茶屋',ico:'🍵',cost:600,
+    fl:'里から来た客に熱いお茶を振る舞う。観光客が増えるかもな。',
+    eff:['観光収益+20%','従業員疲労回復UP','研究P+3/日'],cb:['bench','path'],
+    col:'#4a3010',bt:30},
+  lab:{id:'lab',cat:'facility',name:'怪しい研究室',ico:'🔬',cost:700,
+    fl:'私の手作り研究施設だ。爆発しないことを祈ってくれ。',
+    eff:['研究P+6/日','突然変異率+5%'],cb:['kitchen','shelf'],col:'#3a2040',bt:40},
+  greenhouse:{id:'greenhouse',cat:'facility',name:'温室',ico:'🌿',cost:1000,
+    fl:'全ての棚を最適環境で管理する。天候デバフが無効になるぞ！',
+    eff:['全棚成長+15%','天候デバフ無効'],cb:['water','lab'],col:'#1a4a1a',bt:60,
+    unlRes:'agri1'},
 };
 
-const MUSHROOM_SEL_ITEMS = MUSHROOMS.map(m => ({
-  id:'mushroom_'+m.id, mushroomId:m.id,
-  cat:'mushroom',
-  name:m.name, icon:m.icon, cost:m.cost, flavor:m.desc,
-  effects:buildMushEffects(m),
-  color:m.color
-}));
+const BCATS={
+  farm:    {lbl:'🌱 栽培棚',  items:['shelf']},
+  infra:   {lbl:'⚙️ インフラ', items:['path','water','magic_lamp','dryer']},
+  facility:{lbl:'🏠 施設',    items:['collection_box','bench','kitchen','teahouse','lab','greenhouse']},
+};
 
-function buildMushEffects(m){
-  const e=['成長時間:'+m.growTime+'秒','単価:¥'+m.yield];
-  if(m.wilts) e.push('⚠️ 枯れ時間:'+m.wilts+'秒');
-  return e;
-}
-
-const RESEARCH = [
-  {id:'agri1',    name:'農業技術I',    cost:100, effect:'全棚成長+10% / 温室解放',         rp:100, done:false, prog:0},
-  {id:'bio1',     name:'菌類生理学I',  cost:120, effect:'キノコ収益+15% / 新種解放',        rp:120, done:false, prog:0},
-  {id:'social1',  name:'観光経営I',    cost:80,  effect:'観光収益+20% / 茶屋効果UP',        rp:80,  done:false, prog:0},
-  {id:'culinary1',name:'料理技術I',    cost:150, effect:'キッチン料理価値+25% / 新レシピ解放',rp:150, done:false, prog:0},
-  {id:'route1',   name:'物流最適化',   cost:100, effect:'従業員移動+15% / スタッフ枠+1',    rp:100, done:false, prog:0},
-  {id:'magic1',   name:'魔法農法',     cost:200, effect:'コンボ効果+20% / イベント解放',     rp:200, done:false, prog:0},
+const RESEARCH=[
+  {id:'agri1',    nm:'農業技術I',    rp:100,done:false,prog:0,eff:'全棚成長+10% / 温室解放'},
+  {id:'bio1',     nm:'菌類生理学I',  rp:120,done:false,prog:0,eff:'キノコ収益+15%'},
+  {id:'social1',  nm:'観光経営I',    rp:80, done:false,prog:0,eff:'観光収益+20%'},
+  {id:'culinary1',nm:'料理技術I',    rp:150,done:false,prog:0,eff:'キッチン価値+25% / 新レシピ'},
+  {id:'route1',   nm:'物流最適化',   rp:100,done:false,prog:0,eff:'従業員移動+15% / スタッフ枠+1'},
+  {id:'magic1',   nm:'魔法農法',     rp:200,done:false,prog:0,eff:'コンボ効果+20% / イベント解放'},
 ];
 
-const STAFF_DATA = [
-  {id:'marisa',  name:'霧雨魔理沙', role:'魔法農家',  hat:'🎩', bodyColor:'#2a1a60', speed:1.2, carry:2, magic:0.8, salary:0,   hired:true,  flavor:'私の農場だ！最初からいるに決まってる。'},
-  {id:'reimu',   name:'博麗霊夢',   role:'収穫士',    hat:'🎀', bodyColor:'#6b0000', speed:1.0, carry:3, magic:0.3, salary:200, hired:false, flavor:'賽銭の代わりにキノコで払ってもらうわ。'},
-  {id:'alice',   name:'アリス',     role:'研究員',    hat:'🎩', bodyColor:'#003366', speed:0.8, carry:1, magic:1.5, salary:280, hired:false, flavor:'データを取りながら作業するわ。'},
-  {id:'cirno',   name:'チルノ',     role:'水管理士',  hat:'⭐', bodyColor:'#1a3a5a', speed:1.1, carry:2, magic:0.5, salary:150, hired:false, flavor:'あたいが水路を管理すれば最強！'},
+const STAFFD=[
+  {id:'marisa',nm:'霧雨魔理沙',role:'魔法農家', hat:'🎩',col:'#2a1a60',spd:1.2,sal:0,   hired:true, fl:'私の農場だ！最初からいる。'},
+  {id:'reimu', nm:'博麗霊夢', role:'収穫士',   hat:'🎀',col:'#6b0000',spd:1.0,sal:200,hired:false,fl:'賽銭の代わりにキノコで払ってもらうわ。'},
+  {id:'alice', nm:'アリス',   role:'研究員',   hat:'🪆',col:'#003366',spd:0.8,sal:280,hired:false,fl:'データを取りながら作業するわ。'},
+  {id:'cirno', nm:'チルノ',   role:'水管理士', hat:'⭐',col:'#1a3a5a',spd:1.1,sal:150,hired:false,fl:'あたいが水路を管理すれば最強！'},
 ];
 
-const RECIPES = [
-  {id:'miso_soup',  name:'キノコ味噌汁',  icon:'🍜', ingredients:['normal'],   cookTime:8,  money:180, satisfaction:12, flavor:'定番のキノコ汁。里の人間に最も親しまれている料理だぜ。'},
-  {id:'grilled',    name:'焼きキノコ',    icon:'🍖', ingredients:['zarazara'], cookTime:6,  money:220, satisfaction:16, flavor:'ざらざらキノコを香ばしく焼いた一品。乾燥キノコならさらに上品な味になる。'},
-  {id:'cream_soup', name:'クリームスープ', icon:'🥣', ingredients:['subesube','moko'],cookTime:12, money:350, satisfaction:25, flavor:'すべすべキノコを使った濃厚スープ。もこもこキノコで食感が増すぞ。', unlockResearch:'culinary1'},
-  {id:'luxury',     name:'特選キノコ盛り', icon:'🍱', ingredients:['tsuyatsuya','dekame'],cookTime:20, money:800, satisfaction:50, flavor:'つやつや・でかめのコンビによる超高級品。里の名士たちが予約待ちになるとか。', unlockResearch:'culinary1'},
+const RECIPES=[
+  {id:'miso',  nm:'キノコ味噌汁',   ico:'🍜',reqs:['normal'],            ct:8, m:180,sat:12},
+  {id:'grld',  nm:'焼きキノコ',     ico:'🍖',reqs:['zarazara'],          ct:6, m:220,sat:16},
+  {id:'cream', nm:'クリームスープ', ico:'🥣',reqs:['subesube'],          ct:12,m:320,sat:25,unlRes:'culinary1'},
+  {id:'luxury',nm:'特選キノコ盛り', ico:'🍱',reqs:['tsuyatsuya','dekame'],ct:20,m:750,sat:50,unlRes:'culinary1'},
 ];
 
-// ======================================================
-// GAME STATE
-// ======================================================
-const G = {
-  money:1000, day:1, year:1, tick:0,
-  rp:0, rpPerDay:3,
-  satisfaction:40,
-  placed:[], // {uid, bldId, mushroomId, col, row, buildProg, yieldProg, hasYield, harvestTime, active, el, ...}
-  staff:[],  // {id, staffId, x,y, path:[], pathIdx, state, target, carry, fatigue, el, ...}
-  kitchen:[], // {mushroomId, cookProg, recipeId, cookTime, done}
+// ═══════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════
+let G={
+  money:1000,day:1,year:1,
+  gtick:0,  // game-logic tick counter
+  atick:0,  // animation tick counter
+  rp:0,satisfaction:40,
+  placed:[],staff:[],kitchen:[],
   nextUid:1,
-  selectedBldId:null,
-  selectedMushroomId:null,
-  activeTab:null,
-  removeTool:false,
-  weather:'sunny', weatherTick:0,
-  log:[],
-  totalEarned:0,
-  gridWalk:[], // 2D array: 0=empty, 1=road, 2=blocked
+  selBldId:null,selMshShelf:null,
+  activeTab:null,removeTool:false,
+  weather:'sunny',wtick:0,
+  log:[],totalEarned:0,
+  gridWalk:[],
   saveTick:0,
 };
 
-// Build grid walk map
-function rebuildWalkMap(){
-  G.gridWalk = Array.from({length:ROWS}, ()=>Array(COLS).fill(0));
+// ═══════════════════════════════════════════════
+// WALK MAP
+// ═══════════════════════════════════════════════
+function rebuildWalk(){
+  G.gridWalk=Array.from({length:ROWS},()=>Array(COLS).fill(0));
   G.placed.forEach(p=>{
-    if(!p.active && BUILDINGS[p.bldId]?.buildTime > 0) return;
-    const b = BUILDINGS[p.bldId];
-    if(!b) return;
-    if(b.id === 'path') G.gridWalk[p.row][p.col] = 1;
-    else if(b.id !== 'collection_box' && b.id !== 'bench' && !b.isShelf && !b.isDropoff)
-      G.gridWalk[p.row][p.col] = 2;
-    // shelves are walkable (for harvesting)
-    // collection_box is walkable (for dropoff)
+    if(!p.active&&BLD[p.bid]?.bt>0) return;
+    const b=BLD[p.bid]; if(!b) return;
+    if(b.isPath) G.gridWalk[p.row][p.col]=1;
+    else if(!b.isShelf&&!b.isDrop&&!b.isBench&&!b.isKitchen)
+      G.gridWalk[p.row][p.col]=2;
   });
 }
 
-// ======================================================
-// PATHFINDING (Dijkstra, road preference)
-// ======================================================
-function findPath(sc, sr, ec, er){
-  if(sc===ec && sr===er) return [];
+// ═══════════════════════════════════════════════
+// PATHFINDING — Dijkstra, road preference
+// ═══════════════════════════════════════════════
+function findPath(sc,sr,ec,er){
+  if(sc===ec&&sr===er) return [];
   const key=(c,r)=>r*COLS+c;
-  const INF=1e9;
-  const dist=Array(ROWS*COLS).fill(INF);
-  const prev=Array(ROWS*COLS).fill(-1);
-  const visited=new Uint8Array(ROWS*COLS);
-  const sk=key(sc,sr);
-  dist[sk]=0;
-  // Simple priority queue via array (small grid, ok)
-  const pq=[[0,sc,sr]]; // [cost, col, row]
-  const DIRS=[[0,1],[0,-1],[1,0],[-1,0]];
+  const N=ROWS*COLS;
+  const dist=new Float32Array(N).fill(1e9);
+  const prev=new Int16Array(N).fill(-1);
+  const vis=new Uint8Array(N);
+  dist[key(sc,sr)]=0;
+  const pq=[[0,sc,sr]];
+  const D4=[[0,1],[0,-1],[1,0],[-1,0]];
   while(pq.length){
     pq.sort((a,b)=>a[0]-b[0]);
     const [d,c,r]=pq.shift();
     const k=key(c,r);
-    if(visited[k]) continue;
-    visited[k]=1;
-    if(c===ec && r===er) break;
-    for(const [dc,dr] of DIRS){
-      const nc=c+dc, nr=r+dr;
+    if(vis[k]) continue; vis[k]=1;
+    if(c===ec&&r===er) break;
+    for(const[dc,dr]of D4){
+      const nc=c+dc,nr=r+dr;
       if(nc<0||nc>=COLS||nr<0||nr>=ROWS) continue;
-      const nk=key(nc,nr);
-      if(visited[nk]) continue;
-      // Cost: road=1, empty=3, blocked=999 (unless target)
-      const cellType = G.gridWalk[nr]?.[nc] ?? 2;
-      const isTarget = nc===ec && nr===er;
-      let cost = cellType===1 ? 1 : cellType===2 && !isTarget ? 999 : 3;
+      const nk=key(nc,nr); if(vis[nk]) continue;
+      const ct=G.gridWalk[nr]?.[nc]??2;
+      const isTarget=nc===ec&&nr===er;
+      const cost=ct===1?1:ct===2&&!isTarget?999:3;
       const nd=d+cost;
-      if(nd<dist[nk]){
-        dist[nk]=nd;
-        prev[nk]=k;
-        pq.push([nd,nc,nr]);
-      }
+      if(nd<dist[nk]){dist[nk]=nd;prev[nk]=k;pq.push([nd,nc,nr]);}
     }
   }
-  // Reconstruct path
   const ek=key(ec,er);
-  if(dist[ek]===INF) return null; // unreachable
+  if(dist[ek]>=1e9) return null;
   const path=[];
   let cur=ek;
-  while(cur!==sk){
-    const r2=Math.floor(cur/COLS), c2=cur%COLS;
-    path.unshift([c2,r2]);
-    cur=prev[cur];
-    if(cur<0) return null;
+  while(cur!==key(sc,sr)){
+    path.unshift([cur%COLS,Math.floor(cur/COLS)]);
+    cur=prev[cur]; if(cur<0) return null;
   }
   return path;
 }
 
-// ======================================================
-// ISO RENDERING
-// ======================================================
-let stageX=0, stageY=0, stageScale=1;
-
-function isoPos(c,r){
-  return {x:(c-r)*(TW/2), y:(c+r)*(TH/2)};
-}
-
+// ═══════════════════════════════════════════════
+// ISO MATH
+// ═══════════════════════════════════════════════
+let sX=0,sY=0,sScale=1;
+function isoPos(c,r){return{x:(c-r)*(TW/2),y:(c+r)*(TH/2)};}
 function initViewport(){
-  const vp=document.getElementById('iso-vp');
-  const vpW=vp.clientWidth, vpH=vp.clientHeight;
-  // Center the grid
-  const gridW=(COLS+ROWS)*(TW/2);
-  const gridH=(COLS+ROWS)*(TH/2)+TD;
-  stageX = vpW/2;
-  stageY = vpH*0.15;
-  applyStageTransform();
+  const vp=document.getElementById('vp');
+  sX=vp.clientWidth/2-(COLS-ROWS)*(TW/4);
+  sY=vp.clientHeight*0.15;
+  applyTf();
+}
+function applyTf(){
+  document.getElementById('st').style.transform=`translate(${sX}px,${sY}px) scale(${sScale})`;
 }
 
-function applyStageTransform(){
-  document.getElementById('iso-stage').style.transform=
-    `translate(${stageX}px,${stageY}px) scale(${stageScale})`;
-}
-
-const tileEls={}; // 'c,r' -> {el, top, left, right}
-
+// ═══════════════════════════════════════════════
+// TILE GRID
+// ═══════════════════════════════════════════════
+const tmap={};
 function buildGrid(){
-  const stage=document.getElementById('iso-stage');
-  stage.innerHTML='';
-  Object.keys(tileEls).forEach(k=>delete tileEls[k]);
-  // Render in diagonal order
-  for(let sum=0;sum<COLS+ROWS-1;sum++){
+  const st=document.getElementById('st');
+  st.innerHTML='';
+  for(let s=0;s<COLS+ROWS-1;s++)
     for(let c=0;c<COLS;c++){
-      const r=sum-c;
-      if(r<0||r>=ROWS) continue;
-      buildTile(c,r,stage);
+      const r=s-c; if(r<0||r>=ROWS) continue;
+      const{x,y}=isoPos(c,r);
+      const el=document.createElement('div');
+      el.className='t';
+      el.dataset.c=c;el.dataset.r=r;
+      el.style.cssText=`left:${x-TW/2}px;top:${y}px;width:${TW}px;height:${TILE_H}px;z-index:${(c+r)*3}`;
+      ['tt','tl','tr'].forEach((cls,i)=>{
+        const f=document.createElement('div');
+        f.className=`tf ${cls}`;
+        f.style.background=['#2a1e10','#1a1008','#150d06'][i];
+        el.appendChild(f);
+      });
+      el.addEventListener('pointerdown',()=>onTap(c,r));
+      st.appendChild(el); tmap[`${c},${r}`]=el;
     }
-  }
 }
+function tileTT(c,r){return tmap[`${c},${r}`]?.querySelector('.tt');}
+function setTileCol(c,r,col){const t=tileTT(c,r);if(t)t.style.background=col;}
+function resetTile(c,r){setTileCol(c,r,'#2a1e10');}
 
-function buildTile(c,r,stage){
-  const {x,y}=isoPos(c,r);
+// ═══════════════════════════════════════════════
+// BUILDING RENDER
+// ═══════════════════════════════════════════════
+function renderBld(p){
+  const b=BLD[p.bid]; if(!b) return;
+  const{x,y}=isoPos(p.col,p.row);
+  const st=document.getElementById('st');
+  const BH=34;
   const el=document.createElement('div');
-  el.className='t';
-  el.style.cssText=`left:${x-TW/2}px;top:${y-TH/2}px;width:${TW}px;height:${TH+TD}px;z-index:${(c+r)*3};`;
-
-  const top=document.createElement('div');
-  top.className='t-top';
-  top.style.cssText=`width:${TW}px;height:${TH}px;background:#2a1e10;top:0;left:0;`;
-
-  const left=document.createElement('div');
-  left.className='t-left';
-  left.style.cssText=`width:${TW/2}px;height:${TD}px;background:#1a1008;top:${TH/2}px;left:0;clip-path:none;`;
-
-  const right=document.createElement('div');
-  right.className='t-right';
-  right.style.cssText=`width:${TW/2}px;height:${TD}px;background:#150d06;top:${TH/2}px;left:${TW/2}px;clip-path:none;`;
-
-  el.appendChild(top);
-  el.appendChild(left);
-  el.appendChild(right);
-  el.addEventListener('pointerdown', ()=>onTileTap(c,r));
-  stage.appendChild(el);
-  tileEls[`${c},${r}`]={el,top,left,right};
-}
-
-function getTileEl(c,r){ return tileEls[`${c},${r}`]; }
-
-function setTileColor(c,r,color){
-  const t=getTileEl(c,r);
-  if(t) t.top.style.background=color;
-}
-function resetTileColor(c,r){
-  setTileColor(c,r,'#2a1e10');
-}
-
-// ======================================================
-// BUILDING SPRITES
-// ======================================================
-function renderBuilding(p){
-  const bld=BUILDINGS[p.bldId];
-  if(!bld) return;
-  const {x,y}=isoPos(p.col,p.row);
-  const stage=document.getElementById('iso-stage');
-  const el=document.createElement('div');
-  el.className='bld';
-  el.id=`bld-${p.uid}`;
-  el.style.cssText=`left:${x}px;top:${y-TH/2-34}px;z-index:${(p.col+p.row)*3+1};width:${TW}px;transform:translateX(-50%);`;
-
+  el.className='bld'; el.id=`bld-${p.uid}`;
+  el.style.cssText=`left:${x}px;top:${y+TH/2-BH}px;z-index:${(p.col+p.row)*3+1};width:${TW}px;transform:translateX(-50%)`;
   const body=document.createElement('div');
-  body.className='bld-body';
-  body.style.cssText=`width:${TW-6}px;height:34px;background:linear-gradient(180deg,${bld.color}dd,${bld.color}88);`;
-  body.textContent=bld.icon;
-
-  const name=document.createElement('div');
-  name.className='bld-name';
-  name.textContent=bld.name;
-
-  const pb=document.createElement('div');
-  pb.className='bld-pb';
-  const pf=document.createElement('div');
-  pf.className='bld-pf';
-  pf.style.cssText=`width:${p.active?100:0}%;background:${p.active?'linear-gradient(90deg,#4a7c2f,#7ab648)':'linear-gradient(90deg,#6b4226,#a0623a)'};`;
+  body.className='bb';
+  body.style.cssText=`width:${TW-6}px;height:${BH}px;background:linear-gradient(180deg,${b.col}dd,${b.col}88)`;
+  const ico=document.createElement('span'); ico.className='bico'; ico.textContent=b.ico;
+  const co=document.createElement('div');  co.className='bco';  co.style.display='none';
+  const rd=document.createElement('div');  rd.className='brd';  rd.textContent='収穫可！'; rd.style.display='none';
+  body.appendChild(ico); body.appendChild(co); body.appendChild(rd);
+  const nm=document.createElement('div'); nm.className='bnm'; nm.textContent=b.name;
+  const pb=document.createElement('div'); pb.className='bpb';
+  const pf=document.createElement('div'); pf.className='bpf';
+  pf.style.cssText=`width:${p.active?100:0}%;background:${p.active?'linear-gradient(90deg,#4a7c2f,#7ab648)':'linear-gradient(90deg,#6b4226,#a0623a)'}`;
   pb.appendChild(pf);
-
-  const comboEl=document.createElement('div');
-  comboEl.className='bld-combo';
-  comboEl.style.display='none';
-
-  const readyEl=document.createElement('div');
-  readyEl.className='bld-ready';
-  readyEl.textContent='収穫可!';
-  readyEl.style.display='none';
-
-  body.appendChild(comboEl);
-  body.appendChild(readyEl);
-  el.appendChild(body);
-  el.appendChild(name);
-  el.appendChild(pb);
-  stage.appendChild(el);
-
-  p.el=el;
-  p.progressEl=pf;
-  p.comboEl=comboEl;
-  p.readyEl=readyEl;
-  p.nameEl=name;
-
-  setTileColor(p.col,p.row,bld.color);
+  el.appendChild(body); el.appendChild(nm); el.appendChild(pb);
+  st.appendChild(el);
+  p.el=el; p.icoEl=ico; p.pfEl=pf; p.coEl=co; p.rdEl=rd;
+  setTileCol(p.col,p.row,b.col);
 }
 
-// ======================================================
-// MUSHROOM DISPLAY ON SHELF
-// ======================================================
-function updateShelfDisplay(p){
-  if(!p.el || !p.mushroomId) return;
-  const m=MUSHROOMS.find(m=>m.id===p.mushroomId);
-  if(!m) return;
-  const body=p.el.querySelector('.bld-body');
-  if(body) body.textContent=p.hasYield ? m.icon : (p.active ? m.icon : BUILDINGS[p.bldId].icon);
-  if(p.readyEl) p.readyEl.style.display = p.hasYield ? 'block' : 'none';
+function updShelfDisp(p){
+  if(!p.mushroomId||!p.icoEl) return;
+  const m=MSH.find(m=>m.id===p.mushroomId); if(!m) return;
+  p.icoEl.textContent=m.ico;
+  if(p.rdEl) p.rdEl.style.display=p.hasYield?'block':'none';
+  const tt=tileTT(p.col,p.row);
+  if(tt) tt.style.background=p.hasYield?'#3a6a1e':BLD[p.bid].col;
 }
 
-// ======================================================
+// ═══════════════════════════════════════════════
 // PLACEMENT
-// ======================================================
-function onTileTap(c,r){
-  if(G.removeTool){
-    doRemove(c,r);
-    return;
-  }
-  const existing=getPlacedAt(c,r);
-  if(existing){
-    showPlacedDetail(existing);
-    return;
-  }
-  if(G.selectedBldId){
-    doPlace(G.selectedBldId, c, r);
-  }
+// ═══════════════════════════════════════════════
+function getAt(c,r){return G.placed.find(p=>p.col===c&&p.row===r);}
+
+function onTap(c,r){
+  if(G.removeTool){doRemove(c,r);return;}
+  const ex=getAt(c,r);
+  if(ex){showPlacedDP(ex);return;}
+  if(G.selBldId) doPlace(G.selBldId,c,r);
 }
 
-function getPlacedAt(c,r){
-  return G.placed.find(p=>p.col===c&&p.row===r);
-}
-
-function doPlace(bldId, c, r){
-  const bld=BUILDINGS[bldId];
-  if(!bld){ showBanner('⚠️ 不明な建物だ！'); return; }
-  if(G.money < bld.cost){ showBanner('💰 資金が足りない！'); return; }
-  if(getPlacedAt(c,r)){ showBanner('⚠️ 既に建物がある！'); return; }
-  if(bld.unlockResearch && !RESEARCH.find(r2=>r2.id===bld.unlockResearch&&r2.done)){
-    showBanner('🔬 先に研究を完了させてくれ！'); return;
-  }
-  G.money -= bld.cost;
-  const p={
-    uid:G.nextUid++, bldId, col:c, row:r,
-    buildProg:0, yieldProg:0, hasYield:false,
-    harvestTime:0, // when harvested (for freshness)
-    active: bld.buildTime === 0,
-    mushroomId: null,
-    el:null, progressEl:null, comboEl:null, readyEl:null, nameEl:null,
-  };
-  G.placed.push(p);
-  renderBuilding(p);
-  rebuildWalkMap();
-  updateCombos();
-  updateUI();
-  addLog(`🏗️ ${bld.name} を (${c},${r}) に建設`);
-  if(bld.isShelf) openMushroomSelect(p.uid);
-  else showBanner(`🏗️ ${bld.name} を配置した！`);
+function doPlace(bid,c,r){
+  const b=BLD[bid]; if(!b) return;
+  if(G.money<b.cost){showBanner('💰 資金が足りない！');return;}
+  if(getAt(c,r)){showBanner('⚠️ 既に建物がある！');return;}
+  if(b.unlRes&&!RESEARCH.find(rr=>rr.id===b.unlRes&&rr.done)){showBanner('🔬 先に研究を完了させてくれ！');return;}
+  G.money-=b.cost;
+  const p={uid:G.nextUid++,bid,col:c,row:r,
+    bprog:0,yprog:0,hasYield:false,harvestGt:0,
+    active:b.bt===0,mushroomId:null,
+    el:null,icoEl:null,pfEl:null,coEl:null,rdEl:null};
+  G.placed.push(p); renderBld(p); rebuildWalk(); updCombos();
+  updHdrUI(); addLog(`🏗️ ${b.name} を (${c},${r}) に建設`);
+  if(b.isShelf){showMshSelectPanel(p.uid);showBanner('🌱 どのキノコを育てるか選ぼう！');}
+  else showBanner(`🏗️ ${b.name} を配置！`);
 }
 
 function doRemove(c,r){
   const idx=G.placed.findIndex(p=>p.col===c&&p.row===r);
   if(idx<0) return;
   const p=G.placed[idx];
-  const bld=BUILDINGS[p.bldId];
-  G.money += Math.floor(bld.cost*0.5);
-  p.el?.remove();
-  G.placed.splice(idx,1);
-  resetTileColor(c,r);
-  rebuildWalkMap();
-  updateCombos();
-  updateUI();
-  addLog(`🗑️ ${bld.name} を撤去 (50%返金)`);
-  showBanner(`🗑️ ${bld.name} を撤去`);
+  G.money+=Math.floor(BLD[p.bid].cost*0.5);
+  p.el?.remove(); G.placed.splice(idx,1);
+  resetTile(c,r); rebuildWalk(); updCombos(); updHdrUI(); closeDP();
+  addLog(`🗑️ ${BLD[p.bid].name} 撤去 (50%返金)`);
+  showBanner(`🗑️ ${BLD[p.bid].name} を撤去`);
 }
 
-function openMushroomSelect(uid){
-  // Show mushroom selection in detail panel
-  const p=G.placed.find(p=>p.uid===uid);
-  if(!p) return;
-  showMushroomSelectDetail(p);
-}
-
-// ======================================================
+// ═══════════════════════════════════════════════
 // COMBO SYSTEM
-// ======================================================
-function getAdj(c,r){
-  return [[c-1,r],[c+1,r],[c,r-1],[c,r+1]]
-    .map(([cc,rr])=>getPlacedAt(cc,rr))
-    .filter(Boolean);
+// ═══════════════════════════════════════════════
+function adjOf(c,r){
+  return[[c-1,r],[c+1,r],[c,r-1],[c,r+1]].map(([cc,rr])=>getAt(cc,rr)).filter(Boolean);
 }
-
-function updateCombos(){
+function updCombos(){
   G.placed.forEach(p=>{
-    const bld=BUILDINGS[p.bldId];
-    if(!bld?.combos?.length){ p.comboEl&&(p.comboEl.style.display='none'); return; }
-    const adj=getAdj(p.col,p.row);
-    const hits=adj.filter(a=>bld.combos.includes(a.bldId));
-    if(hits.length && p.comboEl){
-      const hb=BUILDINGS[hits[0].bldId];
-      p.comboEl.textContent=`⚡${hb.icon}相性◎`;
-      p.comboEl.style.display='block';
-    } else if(p.comboEl){
-      p.comboEl.style.display='none';
-    }
+    const b=BLD[p.bid]; if(!b?.cb?.length){p.coEl&&(p.coEl.style.display='none');return;}
+    const hits=adjOf(p.col,p.row).filter(a=>b.cb.includes(a.bid));
+    if(hits.length&&p.coEl){const hb=BLD[hits[0].bid];p.coEl.textContent=`⚡${hb.ico}相性◎`;p.coEl.style.display='block';}
+    else if(p.coEl) p.coEl.style.display='none';
   });
 }
-
-function getComboMult(p, type){
-  const bld=BUILDINGS[p.bldId];
-  if(!bld) return 1;
-  const adj=getAdj(p.col,p.row);
-  let mult=1;
-  adj.forEach(a=>{
-    if(a.bldId==='water' && a.active){
-      if(type==='grow') mult*=(1+(BUILDINGS.water.adjGrow||0));
-      if(type==='yield' && p.mushroomId==='shittori') mult*=1.5;
-    }
-    if(a.bldId==='magic_lamp' && a.active){
-      if(type==='value') mult*=(1+(BUILDINGS.magic_lamp.adjValue||0));
-    }
+function comboMult(p,type){
+  const b=BLD[p.bid]; if(!b) return 1;
+  let m=1;
+  adjOf(p.col,p.row).forEach(a=>{
+    const ab=BLD[a.bid]; if(!a.active||!ab) return;
+    if(ab.adjG&&type==='grow') m*=(1+ab.adjG);
+    if(ab.adjV&&type==='value') m*=(1+ab.adjV);
+    if(ab.id==='water'&&p.mushroomId==='shittori'&&type==='yield') m*=1.5;
+    if(ab.id==='dryer'&&p.mushroomId==='zarazara'&&type==='value') m*=2.0;
   });
-  if(RESEARCH.find(r=>r.id==='magic1'&&r.done)) mult*=1.2; // combo boost
-  return mult;
+  if(RESEARCH.find(r=>r.id==='magic1'&&r.done)) m=1+(m-1)*1.2;
+  return Math.max(1,m);
 }
 
-// ======================================================
+// ═══════════════════════════════════════════════
 // YIELD SYSTEM
-// ======================================================
+// ═══════════════════════════════════════════════
 function updateYields(){
-  const TICK_S = TICK_MS/1000;
   G.placed.forEach(p=>{
-    const bld=BUILDINGS[p.bldId];
-    if(!bld) return;
+    const b=BLD[p.bid]; if(!b) return;
     // Build progress
-    if(!p.active && bld.buildTime>0){
-      p.buildProg+=100/(bld.buildTime*(1000/TICK_MS));
-      if(p.progressEl) p.progressEl.style.width=Math.min(100,p.buildProg)+'%';
-      if(p.buildProg>=100){
-        p.active=true;
-        p.buildProg=100;
-        if(p.progressEl){ p.progressEl.style.width='100%'; p.progressEl.style.background='linear-gradient(90deg,#4a7c2f,#7ab648)'; }
-        addLog(`✅ ${bld.name} 完成！`);
-        showBanner(`✅ ${bld.name} が完成した！`);
-        rebuildWalkMap();
-        if(bld.isShelf) openMushroomSelect(p.uid);
+    if(!p.active&&b.bt>0){
+      p.bprog+=100/(b.bt*gTPS);
+      if(p.pfEl) p.pfEl.style.width=Math.min(100,p.bprog)+'%';
+      if(p.bprog>=100){
+        p.active=true;p.bprog=100;
+        if(p.pfEl){p.pfEl.style.width='100%';p.pfEl.style.background='linear-gradient(90deg,#4a7c2f,#7ab648)';}
+        addLog(`✅ ${b.name} 完成！`);showBanner(`✅ ${b.name} が完成した！`);
+        rebuildWalk();if(b.isShelf)showMshSelectPanel(p.uid);
       }
       return;
     }
-    if(!bld.isShelf || !p.mushroomId || p.hasYield) return;
-    const m=MUSHROOMS.find(m=>m.id===p.mushroomId);
-    if(!m) return;
-
-    let speed=100/(m.growTime*(1000/TICK_MS));
-    speed*=getComboMult(p,'grow');
-    if(G.weather==='rain') speed*=1.3;
-    if(G.weather==='storm') speed*=0.5;
-    if(RESEARCH.find(r=>r.id==='agri1'&&r.done)) speed*=1.1;
-    if(G.placed.some(pp=>pp.bldId==='greenhouse'&&pp.active)) speed*=1.15;
-
-    p.yieldProg+=speed;
-    if(p.progressEl){ p.progressEl.style.width=Math.min(100,p.yieldProg)+'%'; p.progressEl.style.background='linear-gradient(90deg,#d4a017,#f5e6c8)'; }
-
-    if(p.yieldProg>=100){
-      p.hasYield=true;
-      p.yieldProg=0;
-      p.harvestTime=Date.now();
-      updateShelfDisplay(p);
-      showBanner(`🍄 ${m.name} が収穫できる！`);
+    if(!b.isShelf||!p.mushroomId||p.hasYield) return;
+    const m=MSH.find(m=>m.id===p.mushroomId); if(!m) return;
+    let spd=100/(m.gt*gTPS);
+    spd*=comboMult(p,'grow');
+    const hasGH=G.placed.some(pp=>pp.bid==='greenhouse'&&pp.active);
+    if(!hasGH){if(G.weather==='rain')spd*=1.3;if(G.weather==='storm')spd*=0.5;}
+    else spd*=1.15;
+    if(RESEARCH.find(r=>r.id==='agri1'&&r.done)) spd*=1.1;
+    p.yprog+=spd;
+    if(p.pfEl){p.pfEl.style.width=Math.min(100,p.yprog)+'%';p.pfEl.style.background='linear-gradient(90deg,#d4a017,#f5e6c8)';}
+    if(p.yprog>=100){
+      p.hasYield=true;p.yprog=0;p.harvestGt=G.gtick;
+      updShelfDisp(p);showBanner(`🍄 ${m.name} が収穫できる！`);
+      if(m.sat) G.satisfaction=Math.min(100,G.satisfaction+m.sat);
     }
-
-    // Wilt
-    if(m.wilts && p.hasYield){
-      // handled in wilts check
-    }
-  });
-
-  // Wilt check for hyoro
-  G.placed.forEach(p=>{
-    if(!p.mushroomId || !p.hasYield) return;
-    const m=MUSHROOMS.find(m=>m.id===p.mushroomId);
-    if(!m?.wilts) return;
-    const age=(Date.now()-p.harvestTime)/1000;
-    if(age>m.wilts){
-      p.hasYield=false;
-      p.yieldProg=0;
-      updateShelfDisplay(p);
-      addLog(`💀 ${m.name} が枯れた…`);
+    // Wilt check
+    if(m.w&&p.hasYield){
+      const age=(G.gtick-p.harvestGt)/(gTPS);// in seconds
+      if(age>m.w){p.hasYield=false;p.yprog=0;updShelfDisp(p);addLog(`💀 ${m.name} が枯れた…`);}
     }
   });
 }
 
-// ======================================================
+// ═══════════════════════════════════════════════
 // EMPLOYEE AI
-// ======================================================
+// ═══════════════════════════════════════════════
 function initStaff(){
-  STAFF_DATA.filter(sd=>sd.hired).forEach(sd=>spawnStaff(sd));
+  STAFFD.filter(sd=>sd.hired).forEach(sd=>{
+    const c=Math.floor(COLS/2),r=Math.floor(ROWS/2);
+    const{x,y}=isoPos(c,r);
+    const s={uid:G.nextUid++,sid:sd.id,col:c+0.0,row:r+0.0,
+      path:[],pi:0,state:'idle',tuid:null,carry:null,fatigue:0,
+      el:null,bodyEl:null,stEl:null};
+    G.staff.push(s); spawnCharEl(s,sd);
+  });
 }
 
-function spawnStaff(sd){
-  const ns={
-    id:G.nextUid++,
-    staffId:sd.id,
-    x:0, y:0, // stage coords
-    col:Math.floor(COLS/2), row:Math.floor(ROWS/2), // grid position (float)
-    path:[], pathIdx:0,
-    state:'idle', // idle, move, work, carry, rest
-    target:null, // placed uid
-    carry:null,  // {mushroomId, amount, freshness}
-    fatigue:0,
-    el:null, bodyEl:null, statusEl:null, carryEl:null,
-  };
-  // Initial screen pos
-  const {x,y}=isoPos(ns.col,ns.row);
-  ns.x=x; ns.y=y;
-  G.staff.push(ns);
-  renderChar(ns, sd);
-}
-
-function renderChar(s, sd){
-  const stage=document.getElementById('iso-stage');
+function spawnCharEl(s,sd){
+  const st=document.getElementById('st');
+  const{x,y}=isoPos(s.col,s.row);
   const el=document.createElement('div');
-  el.className='char';
-  el.id=`char-${s.id}`;
-  el.style.cssText=`left:${s.x}px;top:${s.y-30}px;z-index:200;`;
-  el.innerHTML=`
-    <span class="char-hat">${sd.hat}</span>
-    <div class="char-body" style="background:${sd.bodyColor}"></div>
-    <div class="char-shadow"></div>
-    <div class="char-st">待機中</div>
-  `;
-  stage.appendChild(el);
-  s.el=el;
-  s.bodyEl=el.querySelector('.char-body');
-  s.statusEl=el.querySelector('.char-st');
+  el.className='ch'; el.id=`ch-${s.uid}`;
+  el.style.cssText=`left:${x}px;top:${y+TH/2-28}px;z-index:200;transform:translateX(-50%)`;
+  el.innerHTML=`<span class="chat">${sd.hat}</span><div class="chb" style="background:${sd.col}"></div><div class="chsh"></div><div class="chst">待機中</div>`;
+  st.appendChild(el);
+  s.el=el; s.bodyEl=el.querySelector('.chb'); s.stEl=el.querySelector('.chst');
 }
 
-function updateStaff(){
+function updStaff(){
   G.staff.forEach(s=>{
-    const sd=STAFF_DATA.find(d=>d.id===s.staffId);
-    if(!sd) return;
-    s.fatigue=Math.min(100,s.fatigue+0.2);
-
-    if(s.fatigue>=85 && s.state!=='rest'){
-      const bench=G.placed.find(p=>p.bldId==='bench'&&p.active);
-      if(bench){
-        s.state='rest';
-        s.target=bench.uid;
-        s.path=findPathToPlaced(s,bench)||[];
-        s.pathIdx=0;
-        setStatus(s,'休憩へ💤');
-      }
-    }
-
+    const sd=STAFFD.find(d=>d.id===s.sid); if(!sd) return;
+    s.fatigue=Math.min(100,s.fatigue+0.05);
     switch(s.state){
-      case 'idle': aiIdle(s,sd); break;
+      case 'idle': aiIdle(s); break;
       case 'move': aiMove(s,sd); break;
-      case 'work': aiWork(s,sd); break;
-      case 'carry': aiCarry(s,sd); break;
       case 'rest': aiRest(s,sd); break;
     }
-    updateCharPos(s);
+    syncCh(s);
   });
 }
 
-function aiIdle(s,sd){
-  // Find ready shelf
-  const readyShelf=G.placed.find(p=>{
-    const b=BUILDINGS[p.bldId];
-    return b?.isShelf && p.hasYield && p.active;
-  });
-  if(readyShelf){
-    const path=findPathToPlaced(s,readyShelf);
-    if(path){
-      s.state='move';
-      s.target=readyShelf.uid;
-      s.path=path;
-      s.pathIdx=0;
-      setStatus(s,'収穫へ🍄');
-    }
-    return;
-  }
-  // Find kitchen with queued items if staff has nothing
-  const kitchen=G.placed.find(p=>p.bldId==='kitchen'&&p.active&&G.kitchen.some(k=>k.done));
-  if(kitchen){
-    const path=findPathToPlaced(s,kitchen);
-    if(path){
-      s.state='move';
-      s.target=kitchen.uid;
-      s.path=path;
-      s.pathIdx=0;
-      setStatus(s,'キッチンへ🍳');
-    }
-  }
+function gotoP(s,placed,lbl){
+  const sc=Math.round(s.col),sr=Math.round(s.row);
+  const path=findPath(sc,sr,placed.col,placed.row);
+  if(!path) return false;
+  s.path=path;s.pi=0;s.tuid=placed.uid;s.state='move';setSt(s,lbl);
+  return true;
 }
 
-function findPathToPlaced(s,p){
-  const sc=Math.round(s.col), sr=Math.round(s.row);
-  return findPath(sc,sr,p.col,p.row);
+function aiIdle(s){
+  if(s.fatigue>=85){
+    const bench=G.placed.find(p=>BLD[p.bid]?.isBench&&p.active);
+    if(bench){gotoP(s,bench,'休憩へ💤');return;}
+    else s.fatigue=0;
+  }
+  if(G.kitchen.some(k=>k.done)){
+    const kitch=G.placed.find(p=>BLD[p.bid]?.isKitchen&&p.active);
+    if(kitch){gotoP(s,kitch,'キッチンへ🍳');return;}
+  }
+  const shelf=G.placed.find(p=>BLD[p.bid]?.isShelf&&p.hasYield&&p.active&&p.mushroomId);
+  if(shelf) gotoP(s,shelf,'収穫へ🍄');
 }
 
 function aiMove(s,sd){
-  if(!s.path||s.pathIdx>=s.path.length){
-    // Arrived
-    const tgt=G.placed.find(p=>p.uid===s.target);
-    if(!tgt){ s.state='idle'; return; }
-    const bld=BUILDINGS[tgt.bldId];
-    if(bld?.isShelf && tgt.hasYield){
-      s.state='work';
-      setStatus(s,'作業中⛏️');
-    } else if(bld?.isDropoff){
-      // Sell
-      doSell(s);
-      s.state='idle';
-    } else if(bld?.bldId==='bench'){
-      s.state='rest';
-    } else if(bld?.isKitchen){
-      // Pick up cooked food
-      const cooked=G.kitchen.find(k=>k.done);
-      if(cooked){
-        s.carry={mushroomId:'cooked',amount:cooked.money,freshness:1,icon:cooked.icon,isCookedFood:true,satisfaction:cooked.satisfaction};
-        G.kitchen.splice(G.kitchen.indexOf(cooked),1);
-        updateCarryDisplay(s);
-        // Now go to dropoff
-        const dropoff=G.placed.find(p=>BUILDINGS[p.bldId]?.isDropoff&&p.active);
-        if(dropoff){
-          s.path=findPathToPlaced(s,dropoff)||[];
-          s.pathIdx=0;
-          s.target=dropoff.uid;
-          s.state='carry';
-          setStatus(s,'運搬中📦');
-        } else s.state='idle';
-      } else s.state='idle';
-    } else {
-      s.state='idle';
-    }
+  // Move step
+  if(s.path&&s.pi<s.path.length){
+    const spd=getSpd(s,sd);
+    const[tc,tr]=s.path[s.pi];
+    const dc=tc-s.col,dr=tr-s.row;
+    const dist=Math.sqrt(dc*dc+dr*dr);
+    if(dist<=spd){s.col=tc;s.row=tr;s.pi++;}
+    else{const f=spd/dist;s.col+=dc*f;s.row+=dr*f;}
     return;
   }
-  // Move along path
-  const [nc,nr]=s.path[s.pathIdx];
-  const {x:tx,y:ty}=isoPos(nc,nr);
-  const dx=tx-s.x, dy=ty-s.y;
-  const dist=Math.sqrt(dx*dx+dy*dy);
-  const spd=STAFF_DATA.find(d=>d.id===s.staffId)?.speed||1;
-  const roadBoost=G.gridWalk[Math.round(s.row)]?.[Math.round(s.col)]===1?1.5:1;
-  const researchBoost=RESEARCH.find(r=>r.id==='route1'&&r.done)?1.15:1;
-  const speed=spd*3*roadBoost*researchBoost;
-  if(dist<speed){
-    s.x=tx; s.y=ty; s.col=nc; s.row=nr;
-    s.pathIdx++;
-  } else {
-    s.x+=dx/dist*speed;
-    s.y+=dy/dist*speed;
-    s.col+=((nc-s.col)/dist*speed)/(TW/2);
-    s.row+=((nr-s.row)/dist*speed)/(TH/2);
-  }
-}
-
-function aiWork(s,sd){
-  // Harvest the shelf
-  const tgt=G.placed.find(p=>p.uid===s.target);
-  if(!tgt||!tgt.hasYield){ s.state='idle'; return; }
-  // Harvest
-  const m=MUSHROOMS.find(m=>m.id===tgt.mushroomId);
-  if(!m){ s.state='idle'; return; }
-  let amt=m.yield;
-  if(m.id==='chibi') amt*=3;
-  amt=Math.floor(amt*getComboMult(tgt,'yield'));
-  if(RESEARCH.find(r=>r.id==='bio1'&&r.done)) amt=Math.floor(amt*1.15);
-  const freshness=(1000-Math.min(1000,Date.now()-tgt.harvestTime))/1000;
-  tgt.hasYield=false;
-  tgt.yieldProg=0;
-  updateShelfDisplay(tgt);
-  if(tgt.progressEl) tgt.progressEl.style.width='0%';
-
-  // Check if kitchen available and mushroom is kitchen-type
-  const kitchenBuilt=G.placed.find(p=>p.bldId==='kitchen'&&p.active);
-  const hasRecipe=RECIPES.find(rec=>rec.ingredients.includes(m.id)&&(!rec.unlockResearch||RESEARCH.find(r=>r.id===rec.unlockResearch&&r.done)));
-  if(kitchenBuilt && hasRecipe && Math.random()<0.6){
-    // Send to kitchen
-    G.kitchen.push({
-      mushroomId:m.id, cookProg:0,
-      recipeId:hasRecipe.id, cookTime:hasRecipe.cookTime,
-      money:hasRecipe.money, icon:hasRecipe.icon,
-      satisfaction:hasRecipe.satisfaction, done:false,
-      freshness
-    });
-    s.carry=null;
-    s.state='idle';
-    addLog(`👩‍🍳 ${m.name} をキッチンへ送った`);
-  } else {
-    s.carry={mushroomId:m.id, amount:amt, freshness, icon:m.icon};
-    updateCarryDisplay(s);
-    // Find dropoff
-    const dropoff=G.placed.find(p=>BUILDINGS[p.bldId]?.isDropoff&&p.active);
-    if(dropoff){
-      s.path=findPathToPlaced(s,dropoff)||[];
-      s.pathIdx=0;
-      s.target=dropoff.uid;
-      s.state='carry';
-      setStatus(s,'運搬中📦');
-    } else {
-      doSell(s);
-      s.state='idle';
-    }
-  }
-}
-
-function aiCarry(s,sd){
-  aiMove(s,sd); // same movement logic, arrival handled in aiMove
+  // Arrived
+  const tgt=G.placed.find(p=>p.uid===s.tuid);
+  if(!tgt){s.state='idle';setSt(s,'待機中');return;}
+  const b=BLD[tgt.bid];
+  if(b?.isShelf&&tgt.hasYield){harvestShelf(s,tgt);}
+  else if(b?.isDrop&&s.carry){doSell(s);s.state='idle';setSt(s,'待機中');}
+  else if(b?.isBench){s.state='rest';setSt(s,'休憩中💤');}
+  else if(b?.isKitchen){doPickupCooked(s);}
+  else{s.state='idle';setSt(s,'待機中');}
 }
 
 function aiRest(s,sd){
-  s.fatigue=Math.max(0,s.fatigue-1.5);
-  const teaAdj=G.placed.some(p=>p.bldId==='teahouse'&&p.active&&Math.abs(p.col-s.col)<3);
-  if(teaAdj) s.fatigue=Math.max(0,s.fatigue-0.5);
-  if(s.fatigue<15){
-    s.state='idle';
-    setStatus(s,'待機中');
+  // still moving toward bench?
+  if(s.path&&s.pi<s.path.length) aiMove(s,sd);
+  const bench=G.placed.some(p=>BLD[p.bid]?.isBench&&p.active);
+  const tea=G.placed.some(p=>p.bid==='teahouse'&&p.active);
+  const rec=0.5+(bench?0.6:0)+(tea?0.4:0);
+  s.fatigue=Math.max(0,s.fatigue-rec);
+  if(s.fatigue<12){s.state='idle';setSt(s,'待機中');}
+}
+
+function getSpd(s,sd){
+  const base=0.12*(sd?.spd||1);
+  const cr=Math.round(s.col),rr=Math.round(s.row);
+  const onRoad=G.gridWalk[rr]?.[cr]===1;
+  const rb=onRoad?1.5:1;
+  const res=RESEARCH.find(r=>r.id==='route1'&&r.done)?1.15:1;
+  return base*rb*res;
+}
+
+function harvestShelf(s,tgt){
+  const m=MSH.find(m=>m.id===tgt.mushroomId); if(!m){s.state='idle';return;}
+  let amt=m.yld*(m.multi||1);
+  amt=Math.floor(amt*comboMult(tgt,'value'));
+  if(RESEARCH.find(r=>r.id==='bio1'&&r.done)) amt=Math.floor(amt*1.15);
+  const freshness=Math.max(0,1-(G.gtick-tgt.harvestGt)*0.02);
+  tgt.hasYield=false;tgt.yprog=0;updShelfDisp(tgt);
+  if(tgt.pfEl) tgt.pfEl.style.width='0%';
+  const kitch=G.placed.find(p=>BLD[p.bid]?.isKitchen&&p.active);
+  const rec=RECIPES.find(r=>r.reqs.includes(m.id)&&(!r.unlRes||RESEARCH.find(rr=>rr.id===r.unlRes&&rr.done)));
+  if(kitch&&rec&&Math.random()<0.55){
+    let cm=rec.m;
+    if(freshness>0.8)cm=Math.floor(cm*1.3);else if(freshness>0.5)cm=Math.floor(cm*1.1);
+    if(RESEARCH.find(r=>r.id==='culinary1'&&r.done)) cm=Math.floor(cm*1.25);
+    G.kitchen.push({mushroomId:m.id,cprog:0,ct:rec.ct,rid:rec.id,money:cm,sat:rec.sat,ico:rec.ico,done:false,fresh:freshness});
+    addLog(`👩‍🍳 ${m.name} をキッチンへ`);s.state='idle';
   } else {
-    // Move toward bench
-    if(s.path?.length && s.pathIdx<s.path.length) aiMove(s,sd);
+    s.carry={ico:m.ico,amt,mid:m.id};updCrry(s);
+    const drop=G.placed.find(p=>BLD[p.bid]?.isDrop&&p.active);
+    if(drop){
+      const sc=Math.round(s.col),sr=Math.round(s.row);
+      const path=findPath(sc,sr,drop.col,drop.row)||[];
+      s.path=path;s.pi=0;s.tuid=drop.uid;s.state='move';setSt(s,'運搬中📦');
+    }else{doSell(s);s.state='idle';}
   }
+}
+
+function doPickupCooked(s){
+  const ck=G.kitchen.find(k=>k.done);
+  if(!ck){s.state='idle';return;}
+  s.carry={ico:ck.ico,amt:ck.money,isFood:true,sat:ck.sat};
+  G.kitchen.splice(G.kitchen.indexOf(ck),1);
+  updCrry(s);
+  const drop=G.placed.find(p=>BLD[p.bid]?.isDrop&&p.active);
+  if(drop){
+    const sc=Math.round(s.col),sr=Math.round(s.row);
+    const path=findPath(sc,sr,drop.col,drop.row)||[];
+    s.path=path;s.pi=0;s.tuid=drop.uid;s.state='move';setSt(s,'料理運搬中🍱');
+  }else{doSell(s);s.state='idle';}
 }
 
 function doSell(s){
   if(!s.carry) return;
-  let amt=s.carry.amount;
-  if(s.carry.isCookedFood){
-    G.satisfaction=Math.min(100,G.satisfaction+(s.carry.satisfaction||0));
-  }
-  // Collection box fee 5%
-  if(G.placed.some(p=>BUILDINGS[p.bldId]?.isDropoff&&p.active)){
-    amt=Math.floor(amt*0.95);
-  }
-  G.money+=amt;
-  G.totalEarned+=amt;
-  G.stats = G.stats||{};
-  spawnParticle(s.x+stageX,s.y+stageY-30,`+¥${amt}`,'#d4a017');
-  addLog(`💰 ${STAFF_DATA.find(d=>d.id===s.staffId)?.name} が ¥${amt} 換金`);
-  s.carry=null;
-  updateCarryDisplay(s);
-  updateUI();
+  let amt=s.carry.amt;
+  if(G.placed.some(p=>BLD[p.bid]?.isDrop&&p.active)) amt=Math.floor(amt*0.95);
+  if(s.carry.isFood&&s.carry.sat) G.satisfaction=Math.min(100,G.satisfaction+s.carry.sat);
+  G.money+=amt;G.totalEarned+=amt;
+  const{x,y}=isoPos(s.col,s.row);
+  spawnPtcl(sX+x*sScale,sY+(y+TH/2)*sScale,`+¥${amt}`,'#d4a017');
+  addLog(`💰 ${STAFFD.find(d=>d.id===s.sid)?.nm} が ¥${amt} 換金`);
+  s.carry=null;updCrry(s);updHdrUI();
 }
 
-function updateCarryDisplay(s){
+function updCrry(s){
   if(!s.el) return;
-  let ce=s.el.querySelector('.char-carry');
-  if(s.carry){
-    if(!ce){ ce=document.createElement('span'); ce.className='char-carry'; s.bodyEl?.appendChild(ce); }
-    ce.textContent=s.carry.icon;
-  } else if(ce) ce.remove();
+  let ce=s.el.querySelector('.chc');
+  if(s.carry){if(!ce){ce=document.createElement('span');ce.className='chc';s.bodyEl?.appendChild(ce);}ce.textContent=s.carry.ico;}
+  else if(ce) ce.remove();
 }
-
-function setStatus(s,text){
-  if(s.statusEl) s.statusEl.textContent=text;
-}
-
-function updateCharPos(s){
+function setSt(s,t){if(s.stEl)s.stEl.textContent=t;}
+function syncCh(s){
   if(!s.el) return;
-  s.el.style.left=s.x+'px';
-  s.el.style.top=(s.y-30)+'px';
+  const{x,y}=isoPos(s.col,s.row);
+  s.el.style.left=x+'px';s.el.style.top=(y+TH/2-28)+'px';
   s.el.style.zIndex=Math.round((s.col+s.row)*3+2);
 }
 
-// ======================================================
-// KITCHEN SYSTEM
-// ======================================================
+// ═══════════════════════════════════════════════
+// KITCHEN
+// ═══════════════════════════════════════════════
 function updateKitchen(){
   G.kitchen.forEach(k=>{
     if(k.done) return;
-    k.cookProg+=100/(k.cookTime*(1000/TICK_MS));
-    if(k.cookProg>=100){
-      k.done=true;
-      // Freshness bonus
-      const bonus=k.freshness>0.8?1.3:k.freshness>0.5?1.1:1.0;
-      k.money=Math.floor(k.money*bonus);
-      if(RESEARCH.find(r=>r.id==='culinary1'&&r.done)) k.money=Math.floor(k.money*1.25);
-      addLog(`🍳 ${RECIPES.find(r=>r.id===k.recipeId)?.name||'料理'} 完成！(¥${k.money})`);
-      showBanner(`🍳 料理完成！ ¥${k.money}`);
+    k.cprog+=100/(k.ct*gTPS);
+    if(k.cprog>=100){
+      k.done=true;k.cprog=100;
+      const r=RECIPES.find(r=>r.id===k.rid);
+      addLog(`🍳 ${r?.nm||'料理'} 完成！¥${k.money}`);showBanner(`🍳 ${r?.nm||'料理'} 完成！`);
     }
   });
 }
 
-// ======================================================
+// ═══════════════════════════════════════════════
 // DAY / WEATHER / EVENTS
-// ======================================================
-const TICK_MS=400;
-
-function dayTick(){
-  G.tick++;
-  const dayLen=90000/TICK_MS; // 90 seconds = 1 day
-  if(G.tick%dayLen===0){
-    G.day++;
-    if(G.day>30){ G.day=1; G.year++; }
-    let rp=G.rpPerDay;
-    if(G.placed.some(p=>p.bldId==='lab'&&p.active)) rp+=6;
-    if(G.placed.some(p=>p.bldId==='teahouse'&&p.active)) rp+=3;
-    G.rp+=rp;
-    G.satisfaction=Math.max(0,G.satisfaction-2);
-    if(G.placed.some(p=>p.bldId==='teahouse'&&p.active)) G.satisfaction=Math.min(100,G.satisfaction+10);
-    if(G.placed.some(p=>p.bldId==='bench'&&p.active)) G.satisfaction=Math.min(100,G.satisfaction+5);
-    // Tourist revenue
-    if(G.satisfaction>30){
-      const rev=Math.floor(G.satisfaction*(RESEARCH.find(r=>r.id==='social1'&&r.done)?1.2:1)*2);
-      if(rev>0){ G.money+=rev; addLog(`👘 観光収益 +¥${rev}`); }
-    }
-    // Random event
-    G.weatherTick++;
-    if(G.weatherTick>2+Math.floor(Math.random()*3)){
-      G.weatherTick=0;
-      changeWeather();
-    }
-    if(Math.random()<0.07) triggerEvent();
-    // Auto staff salary
-    G.staff.forEach(s=>{
-      const sd=STAFF_DATA.find(d=>d.id===s.staffId);
-      if(sd?.salary>0){ G.money=Math.max(0,G.money-sd.salary); addLog(`💸 ${sd.name} 給料 ¥${sd.salary}`); }
-    });
-    updateUI();
-  }
+// ═══════════════════════════════════════════════
+function gameDayTick(){
+  G.gtick++;
+  if(G.gtick%DAY_GTICKS!==0) return;
+  G.day++;if(G.day>30){G.day=1;G.year++;}
+  // RP
+  let rp=3;
+  if(G.placed.some(p=>p.bid==='lab'&&p.active)) rp+=6;
+  if(G.placed.some(p=>p.bid==='teahouse'&&p.active)) rp+=3;
+  G.rp+=rp;
+  // Satisfaction
+  G.satisfaction=Math.max(0,G.satisfaction-1.5);
+  if(G.placed.some(p=>p.bid==='teahouse'&&p.active)) G.satisfaction=Math.min(100,G.satisfaction+10);
+  if(G.placed.some(p=>BLD[p.bid]?.isBench&&p.active)) G.satisfaction=Math.min(100,G.satisfaction+4);
+  // Tourism
+  const kasaBonus=G.placed.filter(p=>p.mushroomId==='kasahiro'&&p.hasYield).length*50;
+  const koroBonus=G.placed.filter(p=>p.mushroomId==='korokoro'&&p.hasYield).length*3;
+  G.satisfaction=Math.min(100,G.satisfaction+koroBonus);
+  let tourRev=Math.floor(G.satisfaction*1.8+kasaBonus);
+  if(RESEARCH.find(r=>r.id==='social1'&&r.done)) tourRev=Math.floor(tourRev*1.2);
+  if(G.placed.some(p=>p.bid==='teahouse'&&p.active)) tourRev=Math.floor(tourRev*1.2);
+  if(tourRev>0){G.money+=tourRev;addLog(`👘 観光収益 +¥${tourRev}`);}
+  // Staff salary
+  G.staff.forEach(s=>{const sd=STAFFD.find(d=>d.id===s.sid);if(sd?.sal>0){G.money=Math.max(0,G.money-sd.sal);addLog(`💸 ${sd.nm} 給料 ¥${sd.sal}`);}});
+  // Weather
+  G.wtick++;
+  if(G.wtick>=3+Math.floor(Math.random()*4)){G.wtick=0;chgWeather();}
+  if(Math.random()<0.06) trigEvt();
+  updHdrUI();
+  if(G.activeTab==='log') renderLog(document.getElementById('spi'));
 }
 
-function changeWeather(){
+function chgWeather(){
   const opts=['sunny','sunny','sunny','rain','fog','storm'];
   const prev=G.weather;
   G.weather=opts[Math.floor(Math.random()*opts.length)];
-  const map={sunny:'☀️ 晴れ',rain:'🌧️ 雨',fog:'🌫️ 霧',storm:'⛈️ 嵐'};
-  document.getElementById('weather-badge').textContent=map[G.weather];
-  if(G.weather!==prev) showBanner(`${map[G.weather]} 天気が変わった！`);
+  const wm={sunny:'☀️ 晴れ',rain:'🌧️ 雨',fog:'🌫️ 霧',storm:'⛈️ 嵐'};
+  document.getElementById('wbdg').textContent=wm[G.weather];
+  if(G.weather!==prev) showBanner(wm[G.weather]+' 天気が変わった！');
 }
 
-const EVENTS=[
-  {banner:'💥 マスタースパーク！ 焼きキノコ大量発生！',fn:()=>{ G.money+=600; spawnParticle(window.innerWidth/2,window.innerHeight/2,'焼きキノコ+¥600','#d4a017'); }},
-  {banner:'🌫️ 幻想郷の霧！ 全キノコが急成長！',fn:()=>{ G.placed.filter(p=>BUILDINGS[p.bldId]?.isShelf&&p.active&&p.mushroomId).forEach(p=>{ p.yieldProg=Math.min(100,p.yieldProg+40); }); }},
-  {banner:'👘 観光客殺到！ 満足度UP！',fn:()=>{ G.satisfaction=Math.min(100,G.satisfaction+20); G.money+=G.satisfaction*3; }},
-  {banner:'🧬 突然変異！ ランダムなキノコが超成長！',fn:()=>{ const s=G.placed.filter(p=>BUILDINGS[p.bldId]?.isShelf&&p.active); if(s.length){ s[Math.floor(Math.random()*s.length)].yieldProg=100; } }},
+const EVTS=[
+  {b:'💥 マスタースパーク！ 焼きキノコ大量発生！',fn:()=>{G.money+=700;spawnPtcl(window.innerWidth*.5,window.innerHeight*.4,'焼き+¥700','#d4a017');addLog('💥 マスタースパーク！+¥700');}},
+  {b:'🌫️ 幻想郷の霧！ 全キノコが急成長！',fn:()=>{G.placed.filter(p=>BLD[p.bid]?.isShelf&&p.active&&p.mushroomId).forEach(p=>p.yprog=Math.min(100,p.yprog+45));}},
+  {b:'👘 観光客殺到！ 大繁盛だぜ！',fn:()=>{const r=Math.floor(G.satisfaction*4+200);G.money+=r;G.satisfaction=Math.min(100,G.satisfaction+15);addLog(`👘 観光客殺到 +¥${r}`);}},
+  {b:'🧬 突然変異！ ランダムな棚が超成長！',fn:()=>{const ss=G.placed.filter(p=>BLD[p.bid]?.isShelf&&p.active&&p.mushroomId);if(ss.length)ss[Math.floor(Math.random()*ss.length)].yprog=100;}},
 ];
-
-function triggerEvent(){
-  if(!RESEARCH.find(r=>r.id==='magic1'&&r.done)&&Math.random()<0.6) return;
-  const ev=EVENTS[Math.floor(Math.random()*EVENTS.length)];
-  showBanner(ev.banner);
-  ev.fn();
-  addLog('⚡ '+ev.banner);
+function trigEvt(){
+  if(!RESEARCH.find(r=>r.id==='magic1'&&r.done)&&Math.random()<0.7) return;
+  const ev=EVTS[Math.floor(Math.random()*EVTS.length)];
+  showBanner(ev.b);ev.fn();addLog('⚡ '+ev.b);
 }
 
-// ======================================================
+// ═══════════════════════════════════════════════
 // SWIPE HARVEST
-// ======================================================
-let swipeSet=new Set();
-let isSwiping=false;
-
-document.addEventListener('pointerdown',(e)=>{
-  isSwiping=true; swipeSet.clear();
-  checkSwipeHarvest(e);
-});
-document.addEventListener('pointermove',(e)=>{ if(isSwiping) checkSwipeHarvest(e); });
-document.addEventListener('pointerup',()=>{ isSwiping=false; swipeSet.clear(); });
-
-function checkSwipeHarvest(e){
-  const el=document.elementFromPoint(e.clientX,e.clientY);
-  if(!el) return;
-  const tile=el.closest('.t');
-  if(!tile) return;
-  // Get col/row from tile
-  // Find tile el
-  for(const [key,t] of Object.entries(tileEls)){
-    if(t.el===tile){
-      const [c,r]=key.split(',').map(Number);
-      const p=getPlacedAt(c,r);
-      if(p && BUILDINGS[p.bldId]?.isShelf && p.hasYield && !swipeSet.has(p.uid)){
-        swipeSet.add(p.uid);
-        playerHarvest(p,e.clientX,e.clientY);
-      }
-      break;
-    }
-  }
+// ═══════════════════════════════════════════════
+let swActive=false,swSet=new Set();
+document.addEventListener('pointerdown',e=>{swActive=true;swSet.clear();tryHarvest(e);},{passive:true});
+document.addEventListener('pointermove',e=>{if(swActive)tryHarvest(e);},{passive:true});
+document.addEventListener('pointerup',()=>{swActive=false;swSet.clear();});
+function tryHarvest(e){
+  const el=document.elementFromPoint(e.clientX,e.clientY); if(!el) return;
+  const tile=el.closest('.t'); if(!tile) return;
+  const c=+tile.dataset.c,r=+tile.dataset.r;
+  const p=getAt(c,r);
+  if(!p||!BLD[p.bid]?.isShelf||!p.hasYield||swSet.has(p.uid)) return;
+  swSet.add(p.uid); playerHarvest(p,e.clientX,e.clientY);
 }
-
 function playerHarvest(p,px,py){
-  if(!p.hasYield) return;
-  const m=MUSHROOMS.find(m=>m.id===p.mushroomId);
-  if(!m) return;
-  let amt=m.yield;
-  if(m.id==='chibi') amt*=3;
-  amt=Math.floor(amt*getComboMult(p,'yield'));
+  const m=MSH.find(m=>m.id===p.mushroomId); if(!m) return;
+  let amt=m.yld*(m.multi||1);
+  amt=Math.floor(amt*comboMult(p,'value'));
   if(RESEARCH.find(r=>r.id==='bio1'&&r.done)) amt=Math.floor(amt*1.15);
-  G.money+=amt;
-  G.totalEarned+=amt;
-  p.hasYield=false; p.yieldProg=0;
-  updateShelfDisplay(p);
-  if(p.progressEl) p.progressEl.style.width='0%';
-  spawnParticle(px,py-20,`+¥${amt}`,'#d4a017');
-  spawnParticle(px+15,py-35,`${m.icon}`,'#7ab648');
-  updateUI();
-  addLog(`✋ ${m.name} を手動収穫 +¥${amt}`);
+  G.money+=amt;G.totalEarned+=amt;
+  p.hasYield=false;p.yprog=0;updShelfDisp(p);
+  if(p.pfEl) p.pfEl.style.width='0%';
+  spawnPtcl(px,py-20,`+¥${amt}`,'#d4a017');
+  spawnPtcl(px+16,py-36,m.ico,'#7ab648');
+  updHdrUI();addLog(`✋ ${m.name} 手動収穫 +¥${amt}`);
 }
 
-// ======================================================
+// ═══════════════════════════════════════════════
 // PARTICLES
-// ======================================================
-function spawnParticle(x,y,text,color){
+// ═══════════════════════════════════════════════
+function spawnPtcl(x,y,text,color){
   const el=document.createElement('div');
-  el.className='ptcl';
-  el.textContent=text;
-  el.style.cssText=`left:${x}px;top:${y}px;color:${color};`;
+  el.className='ptcl';el.textContent=text;
+  el.style.cssText=`left:${x}px;top:${y}px;color:${color}`;
   document.body.appendChild(el);
   el.addEventListener('animationend',()=>el.remove());
 }
 
-// ======================================================
+// ═══════════════════════════════════════════════
 // UI: HEADER
-// ======================================================
-function updateUI(){
-  document.getElementById('h-money').textContent='¥'+G.money.toLocaleString();
-  document.getElementById('h-date').textContent=`${G.year}年${G.day}日`;
+// ═══════════════════════════════════════════════
+function updHdrUI(){
+  document.getElementById('hmoney').textContent='¥'+G.money.toLocaleString();
+  document.getElementById('hdate').textContent=`${G.year}年${G.day}日`;
+  document.getElementById('hrp').textContent=`RP:${Math.floor(G.rp)} | 満足:${Math.floor(G.satisfaction)}%`;
 }
 
-// ======================================================
-// UI: TAB SYSTEM
-// ======================================================
+// ═══════════════════════════════════════════════
+// UI: TABS
+// ═══════════════════════════════════════════════
 function tabClick(tab){
-  const panel=document.getElementById('slide-panel');
-  const inner=document.getElementById('sp-inner');
-  document.querySelectorAll('.mb-btn[data-tab]').forEach(b=>b.classList.remove('active'));
-  if(G.activeTab===tab){
-    G.activeTab=null;
-    panel.classList.remove('open');
-    closeDetail();
-    return;
-  }
+  const panel=document.getElementById('sp');
+  const inner=document.getElementById('spi');
+  document.querySelectorAll('.mbb[data-tab]').forEach(b=>b.classList.remove('active'));
+  if(G.activeTab===tab){G.activeTab=null;panel.classList.remove('open');closeDP();return;}
   G.activeTab=tab;
-  document.querySelector(`.mb-btn[data-tab="${tab}"]`)?.classList.add('active');
+  document.querySelector(`.mbb[data-tab="${tab}"]`)?.classList.add('active');
   panel.classList.add('open');
-  switch(tab){
-    case 'build':    renderBuildPanel(inner); break;
-    case 'research': renderResearchPanel(inner); break;
-    case 'staff':    renderStaffPanel(inner); break;
-    case 'kitchen':  renderKitchenPanel(inner); break;
-    case 'log':      renderLogPanel(inner); break;
-  }
+  renderTab(tab,inner);
+}
+function renderTab(tab,inner){
+  if(tab==='build')    renderBuildTab(inner);
+  else if(tab==='research') renderResTab(inner);
+  else if(tab==='staff')    renderStaffTab(inner);
+  else if(tab==='kitchen')  renderKitchenTab(inner);
+  else if(tab==='log')      renderLog(inner);
 }
 
-// ======================================================
-// UI: BUILD PANEL
-// ======================================================
-function renderBuildPanel(inner){
-  let html='';
-  for(const [catId,cat] of Object.entries(BUILD_CATS)){
-    html+=`<div class="sp-title">${cat.label}</div>`;
-    cat.items.forEach(bldId=>{
-      const bld=BUILDINGS[bldId];
-      const locked=bld.unlockResearch&&!RESEARCH.find(r=>r.id===bld.unlockResearch&&r.done);
-      html+=`<div class="sp-item ${G.selectedBldId===bldId?'sel':''} ${locked?'locked':''}"
-        onclick="selectBuild('${bldId}')">
-        <span class="sp-icon">${bld.icon}</span>
-        <div class="sp-info">
-          <div class="sp-name">${bld.name}${locked?' 🔒':''}</div>
-          <div class="sp-cost">¥${bld.cost}</div>
-        </div>
+// ── BUILD TAB ───────────────────────
+function renderBuildTab(inner){
+  let h='';
+  for(const[,cat]of Object.entries(BCATS)){
+    h+=`<div class="spt">${cat.lbl}</div>`;
+    cat.items.forEach(bid=>{
+      const b=BLD[bid];
+      const lk=b.unlRes&&!RESEARCH.find(r=>r.id===b.unlRes&&r.done);
+      h+=`<div class="spi ${G.selBldId===bid?'sel':''} ${lk?'lk':''}" onclick="selBld('${bid}')">
+        <span class="spico">${b.ico}</span>
+        <div class="spinf"><div class="spn">${b.name}${lk?' 🔒':''}</div><div class="spc">¥${b.cost}</div></div>
       </div>`;
     });
   }
-  inner.innerHTML=html;
+  inner.innerHTML=h;
 }
-
-function selectBuild(bldId){
-  if(G.selectedBldId===bldId){ G.selectedBldId=null; closeDetail(); renderBuildPanel(document.getElementById('sp-inner')); return; }
-  G.selectedBldId=bldId;
-  G.selectedMushroomId=null;
-  G.removeTool=false;
-  document.getElementById('tool-remove-btn')?.classList.remove('active');
-  renderBuildPanel(document.getElementById('sp-inner'));
-  showBuildDetail(bldId);
+function selBld(bid){
+  if(G.selBldId===bid){G.selBldId=null;closeDP();renderBuildTab(document.getElementById('spi'));return;}
+  G.selBldId=bid;G.removeTool=false;document.getElementById('brm').classList.remove('active');
+  renderBuildTab(document.getElementById('spi'));showBldDP(bid);
 }
-
-function showBuildDetail(bldId){
-  const bld=BUILDINGS[bldId];
-  const dp=document.getElementById('detail-panel');
-  const scroll=document.getElementById('dp-scroll');
-  const combosHtml=bld.combos.map(cid=>{
-    const b=BUILDINGS[cid];
-    return b?`<span class="dp-tag gold">⚡ ${b.icon}${b.name}</span>`:'';
-  }).join('');
-  scroll.innerHTML=`
-    <div class="dp-head">
-      <span class="dp-icon">${bld.icon}</span>
-      <div>
-        <div class="dp-name">${bld.name}</div>
-        <div class="dp-sub">建設コスト: ¥${bld.cost}　建設時間: ${bld.buildTime}秒</div>
-      </div>
-    </div>
-    <div class="dp-flavor">"${bld.flavor}"</div>
-    <div class="dp-tags">
-      ${bld.effects.map(e=>`<span class="dp-tag">✅ ${e}</span>`).join('')}
-      ${combosHtml}
-    </div>
-    <div class="dp-btns">
-      <button class="dp-btn primary" onclick="startPlaceMode()">📍 配置モード</button>
-      <button class="dp-btn secondary" onclick="closeDetail()">キャンセル</button>
-    </div>
-  `;
-  dp.classList.add('open');
+function showBldDP(bid){
+  const b=BLD[bid];
+  const ctags=b.cb.map(cid=>{const cb=BLD[cid];return cb?`<span class="dptag g">⚡${cb.ico}${cb.name}</span>`:''}).join('');
+  showDP(b.ico,b.name,`建設コスト:¥${b.cost}　建設時間:${b.bt}秒`,b.fl,
+    b.eff.map(e=>`<span class="dptag">✅ ${e}</span>`).join('')+ctags,
+    `<button class="dpbtn p" onclick="startPlace()">📍 配置モード</button>
+     <button class="dpbtn s" onclick="closeDP()">キャンセル</button>`);
 }
+function startPlace(){closeDP();showBanner(`📍 ${BLD[G.selBldId]?.name} を置きたいタイルをタップ！`);}
 
-function startPlaceMode(){
-  closeDetail();
-  showBanner(`📍 ${BUILDINGS[G.selectedBldId]?.name} を置きたいタイルをタップ！`);
-}
-
-// ======================================================
-// UI: MUSHROOM SELECT DETAIL
-// ======================================================
-function showMushroomSelectDetail(p){
-  const dp=document.getElementById('detail-panel');
-  const scroll=document.getElementById('dp-scroll');
-  let html=`<div class="dp-name" style="margin-bottom:6px">🌱 どのキノコを育てる？</div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;">`;
-  MUSHROOMS.forEach(m=>{
-    html+=`<div class="sp-item" onclick="assignMushroom(${p.uid},'${m.id}')" style="flex-direction:column;align-items:flex-start;padding:5px 6px;">
-      <div style="display:flex;align-items:center;gap:4px;margin-bottom:2px;">
-        <span style="font-size:16px">${m.icon}</span>
-        <span style="font-size:9px;font-weight:bold">${m.name}</span>
-      </div>
-      <div style="font-size:8px;color:var(--c-gold)">¥${m.yield}　${m.growTime}秒</div>
+// ── MUSHROOM SELECT ─────────────────
+function showMshSelectPanel(uid){
+  G.selMshShelf=uid;G.activeTab='build';
+  document.querySelectorAll('.mbb[data-tab]').forEach(b=>b.classList.remove('active'));
+  document.querySelector('.mbb[data-tab="build"]')?.classList.add('active');
+  document.getElementById('sp').classList.add('open');
+  const inner=document.getElementById('spi');
+  let h=`<div class="spt">🌱 育てるキノコを選ぼう</div><div class="mgrid">`;
+  MSH.forEach(m=>{
+    h+=`<div class="mitem" onclick="assignMsh('${m.id}')">
+      <div style="font-size:16px">${m.ico}</div>
+      <div style="font-size:9px;font-weight:bold;margin-top:1px">${m.name}</div>
+      <div style="font-size:8px;color:var(--gold)">¥${m.yld} / ${m.gt}秒</div>
     </div>`;
   });
-  html+='</div>';
-  scroll.innerHTML=html;
-  dp.classList.add('open');
+  h+='</div>';
+  inner.innerHTML=h;
+}
+function assignMsh(mid){
+  const p=G.placed.find(p=>p.uid===G.selMshShelf); if(!p) return;
+  p.mushroomId=mid;p.yprog=0;p.hasYield=false;updShelfDisp(p);
+  G.selMshShelf=null;
+  addLog(`🌱 ${MSH.find(m=>m.id===mid)?.name} 栽培開始`);
+  showBanner(`🌱 ${MSH.find(m=>m.id===mid)?.name} の栽培を開始！`);
+  renderBuildTab(document.getElementById('spi'));closeDP();
 }
 
-function assignMushroom(uid, mushroomId){
-  const p=G.placed.find(p=>p.uid===uid);
-  if(!p) return;
-  p.mushroomId=mushroomId;
-  p.yieldProg=0; p.hasYield=false;
-  updateShelfDisplay(p);
-  const m=MUSHROOMS.find(m=>m.id===mushroomId);
-  addLog(`🌱 ${m?.name} の栽培を開始`);
-  showBanner(`🌱 ${m?.name} の栽培を開始！`);
-  closeDetail();
+// ── PLACED DETAIL ───────────────────
+function showPlacedDP(p){
+  const b=BLD[p.bid];
+  const m=p.mushroomId?MSH.find(m=>m.id===p.mushroomId):null;
+  const hits=adjOf(p.col,p.row).filter(a=>b.cb?.includes(a.bid));
+  showDP(
+    m?m.ico:b.ico, b.name,
+    `状態:${p.active?'稼働中✅':'建設中🔨'} | (${p.col},${p.row})`,
+    m?MDESC[m.id]:b.fl,
+    `${m?`<span class="dptag">🍄 ${m.name}</span><span class="dptag">成長${Math.floor(p.yprog)}%</span>${p.hasYield?'<span class="dptag">✅ 収穫可！</span>':''}`:b.eff.map(e=>`<span class="dptag">✅ ${e}</span>`).join('')}
+     ${hits.map(a=>`<span class="dptag g">⚡${BLD[a.bid].ico}${BLD[a.bid].name}</span>`).join('')}`,
+    `${b.isShelf?`<button class="dpbtn p" onclick="showMshSelectPanel(${p.uid});closeDP()">🌱 キノコ変更</button>`:''}
+     <button class="dpbtn s" onclick="doRemove(${p.col},${p.row})">🗑️ 撤去</button>`
+  );
 }
-
-// ======================================================
-// UI: PLACED BUILDING DETAIL
-// ======================================================
-function showPlacedDetail(p){
-  const bld=BUILDINGS[p.bldId];
-  const m=p.mushroomId?MUSHROOMS.find(m=>m.id===p.mushroomId):null;
-  const combos=G.placed.filter(other=>{
-    if(other.uid===p.uid) return false;
-    const adj=getAdj(p.col,p.row);
-    return adj.some(a=>a.uid===other.uid) && bld.combos?.includes(other.bldId);
-  });
-  const dp=document.getElementById('detail-panel');
-  const scroll=document.getElementById('dp-scroll');
-  scroll.innerHTML=`
-    <div class="dp-head">
-      <span class="dp-icon">${m?m.icon:bld.icon}</span>
-      <div>
-        <div class="dp-name">${bld.name}</div>
-        <div class="dp-sub">状態: ${p.active?'稼働中✅':'建設中🔨'} | 位置:(${p.col},${p.row})</div>
-      </div>
+function showDP(ico,nm,sub,fl,tags,btns){
+  document.getElementById('dps').innerHTML=`
+    <div class="dphd"><span class="dpico">${ico}</span>
+      <div><div class="dpnm">${nm}</div><div class="dpsub">${sub}</div></div>
     </div>
-    ${m?`<div class="dp-flavor">"${m.desc}"</div>`:`<div class="dp-flavor">"${bld.flavor}"</div>`}
-    ${m?`<div class="dp-tags">
-      <span class="dp-tag">🍄 ${m.name}</span>
-      <span class="dp-tag">成長: ${Math.floor(p.yieldProg)}%</span>
-      ${p.hasYield?'<span class="dp-tag" style="background:rgba(74,124,47,.4)">✅ 収穫可！</span>':''}
-    </div>`:''}
-    ${combos.length?`<div class="dp-tags">${combos.map(c=>`<span class="dp-tag gold">⚡ ${BUILDINGS[c.bldId].icon}${BUILDINGS[c.bldId].name}</span>`).join('')}</div>`:''}
-    <div class="dp-btns">
-      ${bld.isShelf?`<button class="dp-btn primary" onclick="openMushroomSelect(${p.uid})">🌱 キノコ変更</button>`:''}
-      <button class="dp-btn secondary" onclick="doRemove(${p.col},${p.row});closeDetail()">🗑️ 撤去</button>
-    </div>
-  `;
-  dp.classList.add('open');
+    <div class="dpfl">"${fl}"</div>
+    <div class="dptags">${tags}</div>
+    <div class="dpbtns">${btns}</div>`;
+  document.getElementById('dp').classList.add('open');
 }
+function closeDP(){document.getElementById('dp').classList.remove('open');G.selBldId=null;}
 
-// ======================================================
-// UI: RESEARCH PANEL
-// ======================================================
-function renderResearchPanel(inner){
-  let html=`<div class="sp-title">研究P: ${Math.floor(G.rp)} RP</div>`;
+// ── RESEARCH TAB ────────────────────
+function renderResTab(inner){
+  let h=`<div class="spt">研究P: ${Math.floor(G.rp)} RP</div>`;
   RESEARCH.forEach(r=>{
     const pct=Math.min(100,r.prog/r.rp*100);
-    html+=`<div class="rc">
-      <div class="rc-h"><span class="rc-n">${r.done?'✅ ':''} ${r.name}</span><span class="rc-s">${r.done?'完了':Math.floor(pct)+'%'}</span></div>
-      <div class="rc-d">${r.effect}</div>
-      <div class="rc-bar"><div class="rc-bf" style="width:${pct}%"></div></div>
-      ${!r.done?`<button class="rc-btn" onclick="investRP('${r.id}')" ${G.rp<25?'disabled':''}>RP 25 投入 (残${Math.ceil((r.rp-r.prog)/25)}回)</button>`:''}
+    h+=`<div class="card">
+      <div class="cardh"><span class="cardn">${r.done?'✅ ':''}${r.nm}</span><span class="cards">${r.done?'完了':Math.floor(pct)+'%'}</span></div>
+      <div class="cardd">${r.eff}</div>
+      <div class="bar"><div class="barf" style="width:${pct}%"></div></div>
+      ${!r.done?`<button class="minibtn" onclick="investRP('${r.id}')" ${G.rp<20?'disabled':''}>RP 20 投入 (残${Math.ceil((r.rp-r.prog)/20)}回)</button>`:''}
     </div>`;
   });
-  inner.innerHTML=html;
+  inner.innerHTML=h;
 }
-
 function investRP(id){
-  const r=RESEARCH.find(r=>r.id===id);
-  if(!r||r.done||G.rp<25) return;
-  G.rp-=25; r.prog+=25;
-  if(r.prog>=r.rp){ r.done=true; r.prog=r.rp; showBanner(`✅ 研究完了: ${r.name}！`); addLog(`🔬 研究完了: ${r.name}`); }
-  renderResearchPanel(document.getElementById('sp-inner'));
-  updateUI();
+  const r=RESEARCH.find(r=>r.id===id);if(!r||r.done||G.rp<20)return;
+  G.rp-=20;r.prog+=20;
+  if(r.prog>=r.rp){r.done=true;r.prog=r.rp;showBanner(`✅ 研究完了: ${r.nm}！`);addLog(`🔬 研究完了: ${r.nm}`);}
+  renderResTab(document.getElementById('spi'));updHdrUI();
 }
 
-// ======================================================
-// UI: STAFF PANEL
-// ======================================================
-function renderStaffPanel(inner){
-  let html='<div class="sp-title">人員管理</div>';
-  STAFF_DATA.forEach(sd=>{
-    const active=G.staff.find(s=>s.staffId===sd.id);
-    const fatigue=active?Math.floor(active.fatigue):0;
-    html+=`<div class="sc">
-      <span class="sc-av">${sd.hat}</span>
-      <div class="sc-inf">
-        <div class="sc-n">${sd.name}</div>
-        <div class="sc-r">${sd.role}</div>
-        <div class="sc-sts">
-          <span class="sc-st">速${sd.speed}</span>
-          <span class="sc-st">運${sd.carry}</span>
-          <span class="sc-st">魔${sd.magic}</span>
-        </div>
-        ${active?`<div style="font-size:7px;color:#8a7060;margin-top:2px">疲労:${fatigue}% | ${active.statusEl?.textContent||'?'}</div>`:''}
+// ── STAFF TAB ───────────────────────
+function renderStaffTab(inner){
+  let h='<div class="spt">人員管理</div>';
+  STAFFD.forEach(sd=>{
+    const act=G.staff.find(s=>s.sid===sd.id);
+    h+=`<div class="card"><div class="scwrap">
+      <span class="scav">${sd.hat}</span>
+      <div style="flex:1">
+        <div class="scnm">${sd.nm}</div>
+        <div class="scrl">${sd.role}</div>
+        <div class="scsts"><span class="scst">速${sd.spd}</span>${act?`<span class="scst">疲${Math.floor(act.fatigue)}%</span>`:''}</div>
+        ${act?`<div style="font-size:7px;color:#8a7060;margin-top:2px">${act.stEl?.textContent||'?'}</div>`:''}
       </div>
-      ${sd.salary>0?
-        `<button class="hire-b" onclick="hireStaff('${sd.id}')" ${active?'disabled':''}>
-          ${active?'雇用済':'¥'+sd.salary+'/日'}
-        </button>`:
-        `<span style="font-size:8px;color:var(--c-gold)">オーナー</span>`}
-    </div>`;
+      ${sd.sal>0?
+        `<button class="minibtn g" onclick="hireStaff('${sd.id}')" ${act?'disabled':''}>${act?'雇用済':'雇用<br>¥'+sd.sal}</button>`:
+        `<span style="font-size:8px;color:var(--gold)">管理者</span>`}
+    </div></div>`;
   });
-  inner.innerHTML=html;
+  inner.innerHTML=h;
 }
-
 function hireStaff(id){
-  const sd=STAFF_DATA.find(d=>d.id===id);
-  if(!sd||G.money<sd.salary*2){ showBanner('💰 資金不足！'); return; }
-  G.money-=sd.salary*2; // 2 days up front
-  sd.hired=true;
-  const ns={
-    id:G.nextUid++, staffId:id,
-    x:0,y:0, col:Math.floor(COLS/2)+1, row:Math.floor(ROWS/2),
-    path:[], pathIdx:0,
-    state:'idle', target:null, carry:null, fatigue:0,
-    el:null,bodyEl:null,statusEl:null,carryEl:null,
-  };
-  const {x,y}=isoPos(ns.col,ns.row);
-  ns.x=x; ns.y=y;
-  G.staff.push(ns);
-  renderChar(ns,sd);
-  addLog(`👤 ${sd.name} を雇用`);
-  showBanner(`👤 ${sd.name} が加わった！`);
-  renderStaffPanel(document.getElementById('sp-inner'));
-  updateUI();
+  const sd=STAFFD.find(d=>d.id===id);if(!sd||G.money<sd.sal*2){showBanner('💰 資金不足！');return;}
+  G.money-=sd.sal*2;sd.hired=true;
+  const c=Math.floor(COLS/2)+1,r=Math.floor(ROWS/2);
+  const{x,y}=isoPos(c,r);
+  const s={uid:G.nextUid++,sid:id,col:c+0.0,row:r+0.0,path:[],pi:0,state:'idle',tuid:null,carry:null,fatigue:0,el:null,bodyEl:null,stEl:null};
+  G.staff.push(s);spawnCharEl(s,sd);
+  addLog(`👤 ${sd.nm} を雇用`);showBanner(`👤 ${sd.nm} が加わった！`);
+  renderStaffTab(document.getElementById('spi'));updHdrUI();
 }
 
-// ======================================================
-// UI: KITCHEN PANEL
-// ======================================================
-function renderKitchenPanel(inner){
-  let html=`<div class="sp-title">料理キュー</div>`;
-  if(!G.kitchen.length){
-    html+='<div style="font-size:9px;color:#8a7060;padding:6px">キノコを収穫すると自動でキッチンへ。</div>';
-  }
-  G.kitchen.forEach((k,i)=>{
-    const rec=RECIPES.find(r=>r.id===k.recipeId);
-    const pct=Math.min(100,k.cookProg);
-    html+=`<div class="recipe-card">
-      <div class="recipe-name">${k.icon} ${rec?.name||'料理中'} ${k.done?'✅':''}</div>
-      <div class="recipe-ing">調理進捗: ${Math.floor(pct)}%</div>
-      <div class="rc-bar"><div class="rc-bf" style="width:${pct}%"></div></div>
-      <div class="recipe-eff">¥${k.money} 鮮度: ${Math.floor(k.freshness*100)}%</div>
+// ── KITCHEN TAB ─────────────────────
+function renderKitchenTab(inner){
+  let h='<div class="spt">料理キュー</div>';
+  if(!G.kitchen.length) h+='<div style="font-size:9px;color:#8a7060;padding:5px">収穫すると自動でキッチンへ。</div>';
+  G.kitchen.forEach(k=>{
+    const r=RECIPES.find(r=>r.id===k.rid);
+    h+=`<div class="card">
+      <div class="cardh"><span class="cardn">${k.ico} ${r?.nm||'調理中'}</span><span class="cards">${k.done?'✅完成':'調理中'}</span></div>
+      <div class="bar"><div class="barf g" style="width:${Math.min(100,k.cprog)}%"></div></div>
+      <div class="cardd">¥${k.money} | 鮮度${Math.floor(k.fresh*100)}%</div>
     </div>`;
   });
-  html+=`<div class="sp-title">解放済みレシピ</div>`;
-  RECIPES.filter(r=>!r.unlockResearch||RESEARCH.find(rr=>rr.id===r.unlockResearch&&rr.done)).forEach(r=>{
-    html+=`<div class="recipe-card">
-      <div class="recipe-name">${r.icon} ${r.name}</div>
-      <div class="recipe-ing">材料: ${r.ingredients.map(id=>MUSHROOMS.find(m=>m.id===id)?.name||id).join('、')}</div>
-      <div class="recipe-eff">¥${r.money} | 満足+${r.satisfaction} | 調理${r.cookTime}秒</div>
+  h+='<div class="spt">解放済みレシピ</div>';
+  RECIPES.filter(r=>!r.unlRes||RESEARCH.find(rr=>rr.id===r.unlRes&&rr.done)).forEach(r=>{
+    h+=`<div class="card">
+      <div class="cardn">${r.ico} ${r.nm}</div>
+      <div class="cardd">材料: ${r.reqs.map(id=>MSH.find(m=>m.id===id)?.name||id).join('、')}</div>
+      <div style="font-size:8px;color:var(--grnl)">¥${r.m} | 満足+${r.sat} | ${r.ct}秒</div>
     </div>`;
   });
-  inner.innerHTML=html;
+  inner.innerHTML=h;
 }
 
-// ======================================================
-// UI: LOG PANEL
-// ======================================================
-function addLog(msg){
-  G.log.unshift({msg,d:`${G.year}年${G.day}日`});
-  if(G.log.length>40) G.log.pop();
-  if(G.activeTab==='log') renderLogPanel(document.getElementById('sp-inner'));
+// ── LOG TAB ─────────────────────────
+function addLog(msg){G.log.unshift({msg,d:`${G.year}年${G.day}日`});if(G.log.length>40)G.log.pop();}
+function renderLog(inner){
+  let h='<div class="spt">経営ログ</div>';
+  G.log.forEach(e=>{h+=`<div class="logent"><span class="logd">${e.d}</span> ${e.msg}</div>`;});
+  inner.innerHTML=h||'<div style="font-size:9px;color:#8a7060;padding:5px">まだログなし</div>';
 }
 
-function renderLogPanel(inner){
-  let html='<div class="sp-title">経営ログ</div>';
-  G.log.forEach(e=>{
-    html+=`<div class="log-entry"><span class="log-day">${e.d}</span> ${e.msg}</div>`;
-  });
-  inner.innerHTML=html||'<div style="font-size:9px;color:#8a7060;padding:6px">まだログなし</div>';
-}
-
-// ======================================================
+// ═══════════════════════════════════════════════
 // REMOVE TOOL
-// ======================================================
-function toggleRemoveTool(){
-  G.removeTool=!G.removeTool;
-  G.selectedBldId=null;
-  closeDetail();
-  const btn=document.getElementById('tool-remove-btn');
-  btn.classList.toggle('active',G.removeTool);
-  if(G.removeTool) showBanner('🗑️ 撤去したいタイルをタップ (50%返金)');
+// ═══════════════════════════════════════════════
+function toggleRm(){
+  G.removeTool=!G.removeTool;G.selBldId=null;closeDP();
+  document.getElementById('brm').classList.toggle('active',G.removeTool);
+  if(G.removeTool)showBanner('🗑️ 撤去したいタイルをタップ (50%返金)');
 }
 
-// ======================================================
-// DETAIL PANEL CLOSE
-// ======================================================
-function closeDetail(){
-  document.getElementById('detail-panel').classList.remove('open');
-}
-
-// ======================================================
+// ═══════════════════════════════════════════════
 // BANNER
-// ======================================================
+// ═══════════════════════════════════════════════
 function showBanner(text){
-  const el=document.getElementById('banner');
-  el.textContent=text;
-  el.classList.remove('show');
-  void el.offsetWidth;
-  el.classList.add('show');
-  el.addEventListener('animationend',()=>el.classList.remove('show'),{once:true});
+  const el=document.getElementById('bnr');
+  el.textContent=text;el.classList.remove('show');void el.offsetWidth;
+  el.classList.add('show');el.addEventListener('animationend',()=>el.classList.remove('show'),{once:true});
 }
 
-// ======================================================
+// ═══════════════════════════════════════════════
 // PAN & ZOOM
-// ======================================================
-let panStart=null, panSX=0, panSY=0;
-let pinchDist0=0, pinchScale0=1;
-
-const vp=document.getElementById('iso-vp');
-
-vp.addEventListener('pointerdown',(e)=>{
-  if(e.target.closest('.t')||e.target.closest('.bld')||e.target.closest('.char')) return;
-  panStart={x:e.clientX,y:e.clientY};
-  panSX=stageX; panSY=stageY;
+// ═══════════════════════════════════════════════
+let panO=null,panSX=0,panSY=0,pinchD0=0,pinchS0=1;
+const vp2=document.getElementById('vp');
+vp2.addEventListener('pointerdown',e=>{
+  if(e.target.closest('.t')||e.target.closest('.bld')||e.target.closest('.ch'))return;
+  panO={x:e.clientX,y:e.clientY};panSX=sX;panSY=sY;
+},{passive:true});
+vp2.addEventListener('pointermove',e=>{
+  if(!panO)return;sX=panSX+(e.clientX-panO.x);sY=panSY+(e.clientY-panO.y);applyTf();
+},{passive:true});
+vp2.addEventListener('pointerup',()=>panO=null);
+vp2.addEventListener('touchstart',e=>{
+  if(e.touches.length===2){const dx=e.touches[0].clientX-e.touches[1].clientX,dy=e.touches[0].clientY-e.touches[1].clientY;pinchD0=Math.sqrt(dx*dx+dy*dy);pinchS0=sScale;}
+},{passive:true});
+vp2.addEventListener('touchmove',e=>{
+  if(e.touches.length===2){const dx=e.touches[0].clientX-e.touches[1].clientX,dy=e.touches[0].clientY-e.touches[1].clientY;sScale=Math.max(.5,Math.min(2.5,pinchS0*(Math.sqrt(dx*dx+dy*dy)/pinchD0)));applyTf();}
 },{passive:true});
 
-vp.addEventListener('pointermove',(e)=>{
-  if(!panStart) return;
-  stageX=panSX+(e.clientX-panStart.x);
-  stageY=panSY+(e.clientY-panStart.y);
-  applyStageTransform();
-},{passive:true});
-
-vp.addEventListener('pointerup',()=>panStart=null);
-
-vp.addEventListener('touchstart',(e)=>{
-  if(e.touches.length===2){
-    const dx=e.touches[0].clientX-e.touches[1].clientX;
-    const dy=e.touches[0].clientY-e.touches[1].clientY;
-    pinchDist0=Math.sqrt(dx*dx+dy*dy);
-    pinchScale0=stageScale;
-  }
-},{passive:true});
-
-vp.addEventListener('touchmove',(e)=>{
-  if(e.touches.length===2){
-    const dx=e.touches[0].clientX-e.touches[1].clientX;
-    const dy=e.touches[0].clientY-e.touches[1].clientY;
-    const dist=Math.sqrt(dx*dx+dy*dy);
-    stageScale=Math.max(0.5,Math.min(2.0,pinchScale0*(dist/pinchDist0)));
-    applyStageTransform();
-  }
-},{passive:true});
-
-// ======================================================
+// ═══════════════════════════════════════════════
 // SAVE / LOAD
-// ======================================================
-function serializeState(){
-  return {
-    money:G.money, day:G.day, year:G.year, rp:G.rp,
-    satisfaction:G.satisfaction, totalEarned:G.totalEarned,
-    placed:G.placed.map(p=>({uid:p.uid,bldId:p.bldId,col:p.col,row:p.row,mushroomId:p.mushroomId,active:p.active,buildProg:p.buildProg})),
-    nextUid:G.nextUid,
+// ═══════════════════════════════════════════════
+const SAVE_KEY='kinoko_v3';
+function getSave(){
+  return{
+    money:G.money,day:G.day,year:G.year,rp:G.rp,sat:G.satisfaction,
+    earned:G.totalEarned,nextUid:G.nextUid,
+    placed:G.placed.map(p=>({uid:p.uid,bid:p.bid,col:p.col,row:p.row,
+      mid:p.mushroomId,active:p.active,bp:p.bprog})),
     research:RESEARCH.map(r=>({id:r.id,done:r.done,prog:r.prog})),
-    staff:STAFF_DATA.map(sd=>({id:sd.id,hired:sd.hired})),
-    log:G.log.slice(0,15),
+    staff:STAFFD.map(sd=>({id:sd.id,hired:sd.hired})),
+    log:G.log.slice(0,12),
   };
 }
-
-function loadState(data){
-  if(!data) return;
-  G.money=data.money||1000;
-  G.day=data.day||1; G.year=data.year||1;
-  G.rp=data.rp||0; G.satisfaction=data.satisfaction||40;
-  G.totalEarned=data.totalEarned||0;
-  G.nextUid=data.nextUid||1;
-  G.log=data.log||[];
-  data.research?.forEach(r=>{
-    const rr=RESEARCH.find(x=>x.id===r.id);
-    if(rr){ rr.done=r.done; rr.prog=r.prog; }
-  });
-  data.staff?.forEach(sd=>{ const d=STAFF_DATA.find(x=>x.id===sd.id); if(d) d.hired=sd.hired; });
+function loadSave(data){
+  if(!data)return;
+  G.money=data.money||1000;G.day=data.day||1;G.year=data.year||1;
+  G.rp=data.rp||0;G.satisfaction=data.sat||40;G.totalEarned=data.earned||0;
+  G.nextUid=data.nextUid||1;G.log=data.log||[];
+  data.research?.forEach(r=>{const rr=RESEARCH.find(x=>x.id===r.id);if(rr){rr.done=r.done;rr.prog=r.prog;}});
+  data.staff?.forEach(sd=>{const d=STAFFD.find(x=>x.id===sd.id);if(d)d.hired=sd.hired;});
   data.placed?.forEach(p=>{
-    const pp={
-      uid:p.uid||G.nextUid++, bldId:p.bldId, col:p.col, row:p.row,
-      mushroomId:p.mushroomId||null, active:p.active, buildProg:p.buildProg||100,
-      yieldProg:0, hasYield:false, harvestTime:0,
-      el:null, progressEl:null, comboEl:null, readyEl:null, nameEl:null,
-    };
-    G.placed.push(pp);
-    renderBuilding(pp);
-    if(pp.mushroomId) updateShelfDisplay(pp);
+    const pp={uid:p.uid||G.nextUid++,bid:p.bid,col:p.col,row:p.row,
+      mushroomId:p.mid||null,active:p.active,bprog:p.bp||100,
+      yprog:0,hasYield:false,harvestGt:0,el:null,icoEl:null,pfEl:null,coEl:null,rdEl:null};
+    G.placed.push(pp);renderBld(pp);if(pp.mushroomId)updShelfDisp(pp);
   });
-  rebuildWalkMap();
-  updateCombos();
+  rebuildWalk();updCombos();
 }
-
 function manualSave(){
-  localStorage.setItem('kinoko_save',JSON.stringify(serializeState()));
-  const el=document.getElementById('save-ind');
-  el.classList.add('show');
-  setTimeout(()=>el.classList.remove('show'),2000);
-  addLog('💾 手動セーブ');
+  localStorage.setItem(SAVE_KEY,JSON.stringify(getSave()));
+  const el=document.getElementById('sind');el.classList.add('show');
+  setTimeout(()=>el.classList.remove('show'),2000);addLog('💾 手動セーブ');
 }
-
 function autoSave(){
   G.saveTick++;
-  if(G.saveTick%(30000/TICK_MS)===0){
-    localStorage.setItem('kinoko_save',JSON.stringify(serializeState()));
-  }
+  if(G.saveTick%(30000/TICK_MS)===0) localStorage.setItem(SAVE_KEY,JSON.stringify(getSave()));
 }
 
-// ======================================================
+// ═══════════════════════════════════════════════
 // STARTER SETUP
-// ======================================================
-function starterSetup(){
-  doPlace('shelf',3,3);
-  doPlace('collection_box',5,4);
-  doPlace('path',4,3);
-  doPlace('path',4,4);
+// ═══════════════════════════════════════════════
+function starter(){
+  doPlace('shelf',3,3);doPlace('collection_box',6,4);
+  doPlace('path',4,3);doPlace('path',5,3);doPlace('path',5,4);
   doPlace('water',2,3);
-  // Assign mushroom to first shelf
-  const shelf=G.placed.find(p=>p.bldId==='shelf');
-  if(shelf){ shelf.mushroomId='normal'; updateShelfDisplay(shelf); }
-  updateCombos();
-  addLog('🌿 霧雨魔法キノコ園 開業！');
+  const sh=G.placed.find(p=>p.bid==='shelf');
+  if(sh){sh.mushroomId='normal';updShelfDisp(sh);}
+  updCombos();addLog('🌿 霧雨魔法キノコ園 開業！');
 }
 
-// ======================================================
+// ═══════════════════════════════════════════════
 // MAIN LOOP
-// ======================================================
-function gameLoop(){
-  updateYields();
-  updateStaff();
-  updateKitchen();
-  dayTick();
-  autoSave();
+// ═══════════════════════════════════════════════
+let aTick=0;
+function loop(){
+  aTick++;
+  updStaff(); // every animation tick (100ms)
+  if(aTick%GAME_TICKS===0){ // every 500ms
+    updateYields();updateKitchen();gameDayTick();updHdrUI();autoSave();
+    if(G.activeTab==='staff') renderStaffTab(document.getElementById('spi'));
+    if(G.activeTab==='kitchen') renderKitchenTab(document.getElementById('spi'));
+  }
 }
 
-// ======================================================
+// ═══════════════════════════════════════════════
 // INIT
-// ======================================================
+// ═══════════════════════════════════════════════
 function init(){
-  initViewport();
-  buildGrid();
-  const saved=localStorage.getItem('kinoko_save');
-  if(saved){
-    try{
-      loadState(JSON.parse(saved));
-      showBanner('💾 セーブデータを読み込んだ！');
-    }catch(e){
-      starterSetup();
-    }
-  } else {
-    starterSetup();
-  }
-  initStaff();
-  updateUI();
-  setInterval(gameLoop, TICK_MS);
+  initViewport();buildGrid();
+  const saved=localStorage.getItem(SAVE_KEY);
+  if(saved){try{loadSave(JSON.parse(saved));showBanner('💾 セーブデータを読み込んだ！');}catch{starter();}}
+  else starter();
+  initStaff();updHdrUI();
+  setInterval(loop,TICK_MS);
   setTimeout(()=>showBanner('🍄 霧雨魔法キノコ園へようこそ！左メニューから建設を始めよう！'),800);
 }
-
-window.addEventListener('resize',()=>{ initViewport(); });
+window.addEventListener('resize',()=>initViewport());
 window.addEventListener('load',init);
 </script>
 </body>
