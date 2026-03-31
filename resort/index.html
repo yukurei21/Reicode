@@ -3,608 +3,795 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>ゴーバケーション ─ Open World Prototype</title>
+<title>マリンリゾート ─ Open World</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-html,body{width:100%;height:100%;background:#000;overflow:hidden;touch-action:none}
+html,body{width:100%;height:100%;background:#0a4878;overflow:hidden;touch-action:none}
 canvas{display:block;touch-action:none}
-#hud{
-  position:fixed;top:12px;left:50%;transform:translateX(-50%);
-  background:rgba(0,0,0,.62);backdrop-filter:blur(6px);
-  color:#FFD700;font:bold 20px/1 'Arial Rounded MT Bold',Arial,sans-serif;
-  padding:9px 24px;border-radius:30px;
-  border:2px solid rgba(255,215,0,.4);pointer-events:none;
-  text-shadow:0 0 10px rgba(255,215,0,.8);white-space:nowrap;
-}
-#hud.pop{animation:pop .3s ease;}
-@keyframes pop{0%{transform:translateX(-50%) scale(1)}50%{transform:translateX(-50%) scale(1.32)}100%{transform:translateX(-50%) scale(1)}}
-#msg{
-  position:fixed;top:62px;left:50%;transform:translateX(-50%);
-  color:#fff;font:bold 15px Arial;background:rgba(0,0,0,.58);
-  padding:6px 18px;border-radius:14px;pointer-events:none;
-  opacity:0;transition:opacity .4s;white-space:nowrap;
-}
-#hint{
-  position:fixed;bottom:16px;left:50%;transform:translateX(-50%);
-  color:rgba(255,255,255,.45);font:12px Arial;pointer-events:none;
-  text-align:center;transition:opacity 1s;
-}
+#hud{position:fixed;top:12px;left:50%;transform:translateX(-50%);
+  background:rgba(0,0,0,.65);backdrop-filter:blur(6px);
+  color:#FFD700;font:bold 20px/1 Arial,sans-serif;
+  padding:8px 22px;border-radius:28px;border:2px solid rgba(255,215,0,.4);
+  pointer-events:none;text-shadow:0 0 8px rgba(255,215,0,.7);white-space:nowrap}
+#hud.pop{animation:pop .3s ease}
+@keyframes pop{0%{transform:translateX(-50%) scale(1)}50%{transform:translateX(-50%) scale(1.28)}100%{transform:translateX(-50%) scale(1)}}
+#msg{position:fixed;top:60px;left:50%;transform:translateX(-50%);
+  color:#fff;font:bold 14px Arial;background:rgba(0,0,0,.62);
+  padding:6px 16px;border-radius:12px;pointer-events:none;
+  opacity:0;transition:opacity .4s;white-space:nowrap;max-width:90vw;text-align:center}
+#hint{position:fixed;bottom:14px;left:50%;transform:translateX(-50%);
+  color:rgba(255,255,255,.45);font:11px Arial;pointer-events:none;
+  text-align:center;transition:opacity 1.2s;white-space:nowrap}
 </style>
 </head>
 <body>
 <canvas id="c"></canvas>
 <div id="hud">⭐ Stars: 0 / 30</div>
 <div id="msg"></div>
-<div id="hint">WASD / 矢印キーで移動 ｜ Shift でダッシュ</div>
+<div id="hint">WASD/矢印=移動 ｜ Shift=ダッシュ ｜ F=話す/スタンプ ｜ X=崖ホップ（ダッシュ中）</div>
 <script>
 'use strict';
 
-// ════════════════════════════════════════════
+// ══════════════════════════════════════════
 //  CONFIG
-// ════════════════════════════════════════════
-const MAP_W     = 2000;
-const MAP_H     = 2000;
-const PLAYER_R  = 14;
-const COLLECT_R = 22;
-const BASE_SPD  = 3.5;
-const DASH_MULT = 1.5;
-const N_STARS   = 30;
-const N_PALMS   = 55;
-const N_BENCHES = 28;
+// ══════════════════════════════════════════
+const MAP_W=2000,MAP_H=2000,PR=14;
+const BASE_SPD=3.5,DASH_MULT=1.5,WATER_MULT=1.8,COLLECT_R=22;
 
-// ════════════════════════════════════════════
-//  CANVAS
-// ════════════════════════════════════════════
-const canvas = document.getElementById('c');
-const ctx    = canvas.getContext('2d');
-const hud    = document.getElementById('hud');
-const msgEl  = document.getElementById('msg');
-const hint   = document.getElementById('hint');
+// ══════════════════════════════════════════
+//  TERRAIN DATA
+// ══════════════════════════════════════════
+const MI={cx:950,cy:1050,rx:620,ry:510};
 
-function resize() {
-  canvas.width  = window.innerWidth;
-  canvas.height = window.innerHeight;
+const ISLANDS=[
+  {id:0,cx:1780,cy:280, r:148,name:'北東リゾート島',npcId:0},
+  {id:1,cx:220, cy:580, r:118,name:'西の楽園島',    npcId:1},
+  {id:2,cx:1758,cy:1622,r:128,name:'南東の島',      npcId:2},
+  {id:3,cx:980, cy:108, r:62, name:'北の岩礁'},
+  {id:4,cx:318, cy:1792,r:70, name:'南西の岩礁'},
+  {id:5,cx:1928,cy:948, r:55, name:'東の岩礁'},
+];
+
+// Cliff platforms (require dash-hop to enter)
+const CLIFFS=[
+  {id:0,cx:418, cy:682,r:52,name:'北西の崖'},
+  {id:1,cx:1382,cy:618,r:47,name:'北東の崖'},
+];
+
+function inEl(x,y,cx,cy,rx,ry){return (x-cx)**2/rx**2+(y-cy)**2/ry**2<=1;}
+
+function getTerrain(x,y){
+  for(const c of CLIFFS) if(Math.hypot(x-c.cx,y-c.cy)<c.r) return 'cliff';
+  if(inEl(x,y,MI.cx,MI.cy,MI.rx-80,MI.ry-80)) return 'grass';
+  if(inEl(x,y,MI.cx,MI.cy,MI.rx,MI.ry)) return 'sand';
+  for(const isl of ISLANDS){
+    const d=Math.hypot(x-isl.cx,y-isl.cy);
+    if(d<isl.r*.55) return 'grass';
+    if(d<isl.r) return 'sand';
+  }
+  return 'water';
 }
-window.addEventListener('resize', resize);
-resize();
-setTimeout(() => hint.style.opacity = '0', 4000);
+function isLand(x,y){return getTerrain(x,y)!=='water';}
 
-// ════════════════════════════════════════════
-//  HELPER FUNCTIONS  (hoisted declarations)
-// ════════════════════════════════════════════
-function inWater(x, y) { return y > 1850 || x > 1850; }
-function inRoad(x, y)  {
-  return Math.abs(y - 1000) < 75 || Math.abs(x - 1000) < 75
-      || (Math.abs(y - 428) < 48 && x < 940)
-      || (Math.abs(x - 428) < 48 && y < 940);
+// ══════════════════════════════════════════
+//  CANVAS + POLYFILL
+// ══════════════════════════════════════════
+const C=document.getElementById('c'),ctx=C.getContext('2d');
+const hudEl=document.getElementById('hud'),msgEl=document.getElementById('msg');
+function resize(){C.width=innerWidth;C.height=innerHeight;}
+window.addEventListener('resize',resize);resize();
+setTimeout(()=>document.getElementById('hint').style.opacity='0',5000);
+
+// roundRect polyfill for older browsers
+if(!CanvasRenderingContext2D.prototype.roundRect){
+  CanvasRenderingContext2D.prototype.roundRect=function(x,y,w,h,r){
+    r=Math.min(+r||0,w/2,h/2);
+    this.moveTo(x+r,y);this.lineTo(x+w-r,y);this.quadraticCurveTo(x+w,y,x+w,y+r);
+    this.lineTo(x+w,y+h-r);this.quadraticCurveTo(x+w,y+h,x+w-r,y+h);
+    this.lineTo(x+r,y+h);this.quadraticCurveTo(x,y+h,x,y+h-r);
+    this.lineTo(x,y+r);this.quadraticCurveTo(x,y,x+r,y);
+    return this;
+  };
 }
-function randPos(margin, noWater, noRoad) {
-  let x, y;
-  do {
-    x = margin + Math.random() * (MAP_W - margin * 2);
-    y = margin + Math.random() * (MAP_H - margin * 2);
-  } while ((noWater && inWater(x, y)) || (noRoad && inRoad(x, y)));
-  return { x, y };
-}
+function rRect(x,y,w,h,r){ctx.beginPath();ctx.roundRect(x,y,w,h,r);} // shorthand
 
-// ════════════════════════════════════════════
-//  OFFSCREEN MAP  (rendered once)
-// ════════════════════════════════════════════
-const mapOC = document.createElement('canvas');
-mapOC.width = MAP_W; mapOC.height = MAP_H;
-const mc = mapOC.getContext('2d');
+// ══════════════════════════════════════════
+//  OFFSCREEN MAP BUILD
+// ══════════════════════════════════════════
+const mapOC=document.createElement('canvas');
+mapOC.width=MAP_W;mapOC.height=MAP_H;
+const mc=mapOC.getContext('2d');
 
-(function buildMap() {
-  // ── Grass base ──
-  mc.fillStyle = '#4d9640';
-  mc.fillRect(0, 0, MAP_W, MAP_H);
-  [[300,220,200],[720,480,170],[1220,320,210],[420,1230,160],
-   [1520,620,195],[820,1430,230],[1620,1310,180],[220,1620,165],
-   [600,900,140],[1400,1600,160]
-  ].forEach(([gx,gy,gr]) => {
-    const g = mc.createRadialGradient(gx,gy,0,gx,gy,gr);
-    g.addColorStop(0,'#60b04e'); g.addColorStop(1,'rgba(77,150,64,0)');
-    mc.fillStyle = g;
-    mc.beginPath(); mc.arc(gx,gy,gr,0,Math.PI*2); mc.fill();
-  });
-
-  // ── Beach ──
-  mc.fillStyle = '#d5b87a';
-  mc.fillRect(0,1660,MAP_W,340);
-  mc.fillRect(1660,0,340,1660);
-
+(function buildMap(){
   // ── Ocean ──
-  mc.fillStyle = '#2e9fce';
-  mc.fillRect(0,1860,MAP_W,140);
-  mc.fillRect(1860,0,140,MAP_H);
-  mc.fillStyle = '#1e8ab8';
-  mc.fillRect(1860,1860,140,140);
-  mc.strokeStyle = 'rgba(255,255,255,.2)'; mc.lineWidth = 4;
-  for (let i=0;i<5;i++) {
-    const wy=1868+i*24;
+  const og=mc.createLinearGradient(0,0,MAP_W,MAP_H);
+  og.addColorStop(0,'#1a85c8');og.addColorStop(1,'#0a5a9a');
+  mc.fillStyle=og;mc.fillRect(0,0,MAP_W,MAP_H);
+  mc.strokeStyle='rgba(255,255,255,.055)';mc.lineWidth=2;
+  for(let wy=18;wy<MAP_H;wy+=46){
     mc.beginPath();
-    for (let wx=0;wx<MAP_W;wx+=70) {
-      mc.moveTo(wx,wy); mc.quadraticCurveTo(wx+35,wy-7,wx+70,wy);
+    for(let wx=0;wx<MAP_W;wx+=92){
+      mc.moveTo(wx,wy+Math.sin(wx*.018)*8);
+      mc.quadraticCurveTo(wx+46,wy-6,wx+92,wy+Math.sin((wx+92)*.018)*8);
     }
     mc.stroke();
   }
 
-  // ── Roads ──
-  mc.fillStyle = '#5e5e5e';
-  mc.fillRect(0,940,MAP_W,120);
-  mc.fillRect(940,0,120,MAP_H);
-  mc.fillRect(0,383,940,90);
-  mc.fillRect(1060,383,940,90);
-  mc.fillRect(383,0,90,940);
-  mc.fillRect(383,1060,90,600);
+  // ── Shallow halos ──
+  function shHalo(cx,cy,r){
+    const g=mc.createRadialGradient(cx,cy,r*.6,cx,cy,r+130);
+    g.addColorStop(0,'rgba(60,200,255,.38)');g.addColorStop(1,'rgba(60,200,255,0)');
+    mc.fillStyle=g;mc.beginPath();mc.arc(cx,cy,r+130,0,Math.PI*2);mc.fill();
+  }
+  shHalo(MI.cx,MI.cy,(MI.rx+MI.ry)/2);
+  for(const isl of ISLANDS) shHalo(isl.cx,isl.cy,isl.r);
 
-  mc.strokeStyle = 'rgba(255,255,180,.6)'; mc.lineWidth = 3;
-  mc.setLineDash([35,35]);
-  mc.beginPath(); mc.moveTo(0,1000);  mc.lineTo(MAP_W,1000); mc.stroke();
-  mc.beginPath(); mc.moveTo(1000,0);  mc.lineTo(1000,MAP_H); mc.stroke();
-  mc.setLineDash([]);
-  mc.strokeStyle = 'rgba(255,230,30,.5)'; mc.lineWidth = 2;
-  [[0,942,MAP_W,942],[0,1058,MAP_W,1058],
-   [942,0,942,MAP_H],[1058,0,1058,MAP_H]].forEach(([x1,y1,x2,y2])=>{
-    mc.beginPath(); mc.moveTo(x1,y1); mc.lineTo(x2,y2); mc.stroke();
-  });
-
-  // ── Park ──
-  mc.fillStyle = '#3a7e28';
-  mc.fillRect(510,510,320,320);
-  mc.fillStyle = '#b8a870';
-  mc.fillRect(510,657,320,26);
-  mc.fillRect(657,510,26,320);
-  mc.fillStyle = '#52b8d8';
-  mc.beginPath(); mc.arc(670,670,28,0,Math.PI*2); mc.fill();
-  mc.strokeStyle = '#38a0c0'; mc.lineWidth=3; mc.stroke();
-  mc.fillStyle = '#84d8f8';
-  mc.beginPath(); mc.arc(670,670,10,0,Math.PI*2); mc.fill();
-
-  // ── Hotel ──
-  mc.fillStyle = '#f0e8d0';
-  mc.fillRect(1100,55,490,180);
-  mc.fillStyle = '#7ed4f4';
-  for (let wi=0;wi<7;wi++) for (let wj=0;wj<3;wj++)
-    mc.fillRect(1114+wi*62, 70+wj*50, 40, 30);
-  mc.fillStyle = '#c03030';
-  mc.beginPath();
-  mc.moveTo(1085,55); mc.lineTo(1345,12); mc.lineTo(1600,55);
-  mc.closePath(); mc.fill();
-  mc.fillStyle = '#8a7050'; mc.fillRect(1310,186,70,49);
-  mc.fillStyle = '#5a4020'; mc.fillRect(1325,200,40,35);
-
-  // ── Pool ──
-  mc.fillStyle = '#44b8dc';
-  mc.fillRect(1195,255,290,160);
-  mc.strokeStyle = '#80d8fc'; mc.lineWidth=4;
-  mc.strokeRect(1195,255,290,160);
-  mc.fillStyle = '#e8d0a0';
-  mc.fillRect(1180,240,320,15); mc.fillRect(1180,415,320,15);
-  mc.fillRect(1180,255,15,160); mc.fillRect(1485,255,15,160);
-  mc.strokeStyle = 'rgba(255,255,255,.35)'; mc.lineWidth=2;
-  for (let l=1;l<4;l++) {
-    mc.beginPath();
-    mc.moveTo(1195,255+160/4*l); mc.lineTo(1485,255+160/4*l); mc.stroke();
+  // ── Main island ──
+  mc.fillStyle='#d4b468';
+  mc.beginPath();mc.ellipse(MI.cx,MI.cy,MI.rx,MI.ry,0,0,Math.PI*2);mc.fill();
+  mc.fillStyle='#4a9438';
+  mc.beginPath();mc.ellipse(MI.cx,MI.cy,MI.rx-80,MI.ry-80,0,0,Math.PI*2);mc.fill();
+  // grass variation
+  for(const [gx,gy,gr,gc] of [
+    [800,900,175,'#56a844'],[1100,1200,148,'#52a040'],[855,1200,132,'#4e9c3c'],
+    [1050,900,118,'#58ab46'],[700,1150,128,'#50a040'],[1200,1000,105,'#54a442'],
+    [920,1350,140,'#4e9c3c'],[1050,780,90,'#58ab46']
+  ]){
+    const g=mc.createRadialGradient(gx,gy,0,gx,gy,gr);
+    g.addColorStop(0,gc);g.addColorStop(1,'rgba(74,148,56,0)');
+    mc.fillStyle=g;mc.beginPath();mc.arc(gx,gy,gr,0,Math.PI*2);mc.fill();
   }
 
-  // ── Courtyard / Plaza ──
-  mc.fillStyle = '#c8b888';
-  mc.fillRect(100,100,200,200);
-  mc.strokeStyle = '#a8986a'; mc.lineWidth=2;
-  for (let ti=0;ti<4;ti++) for (let tj=0;tj<4;tj++)
-    mc.strokeRect(100+ti*50,100+tj*50,50,50);
+  // ── Roads (clipped to inner ellipse) ──
+  mc.save();
+  mc.beginPath();mc.ellipse(MI.cx,MI.cy,MI.rx-78,MI.ry-78,0,0,Math.PI*2);mc.clip();
+  mc.fillStyle='#5a5a5a';
+  mc.fillRect(0,995,MAP_W,72);
+  mc.fillRect(915,0,72,MAP_H);
+  mc.fillRect(0,404,750,56);
+  mc.fillRect(404,0,56,762);
+  mc.strokeStyle='rgba(255,255,170,.5)';mc.lineWidth=2.5;mc.setLineDash([28,28]);
+  mc.beginPath();mc.moveTo(0,1031);mc.lineTo(MAP_W,1031);mc.stroke();
+  mc.beginPath();mc.moveTo(951,0);mc.lineTo(951,MAP_H);mc.stroke();
+  mc.setLineDash([]);
+  mc.strokeStyle='rgba(255,220,20,.4)';mc.lineWidth=1.5;
+  [[0,996,MAP_W,996],[0,1066,MAP_W,1066],[916,0,916,MAP_H],[986,0,986,MAP_H]].forEach(([x1,y1,x2,y2])=>{
+    mc.beginPath();mc.moveTo(x1,y1);mc.lineTo(x2,y2);mc.stroke();
+  });
 
-  // ── Tennis court ──
-  mc.fillStyle = '#5880c0';
-  mc.fillRect(200,1200,220,110);
-  mc.strokeStyle = '#fff'; mc.lineWidth=2;
-  mc.strokeRect(205,1205,210,100);
-  mc.beginPath(); mc.moveTo(310,1205); mc.lineTo(310,1305); mc.stroke();
-  mc.beginPath(); mc.moveTo(205,1255); mc.lineTo(415,1255); mc.stroke();
+  // Hotel
+  mc.fillStyle='#ede5cc';mc.fillRect(1050,600,325,150);
+  mc.fillStyle='#7ccef0';
+  for(let i=0;i<4;i++)for(let j=0;j<2;j++) mc.fillRect(1063+i*72,613+j*53,50,36);
+  mc.fillStyle='#c83030';
+  mc.beginPath();mc.moveTo(1033,600);mc.lineTo(1212,555);mc.lineTo(1390,600);mc.closePath();mc.fill();
+  mc.fillStyle='#3a2808';mc.fillRect(1154,712,58,38);
+  mc.fillStyle='rgba(60,190,255,.2)';mc.fillRect(1155,713,56,37);
+
+  // Pool
+  mc.fillStyle='#42b4d8';mc.fillRect(1060,778,212,112);
+  mc.strokeStyle='#7cd4f8';mc.lineWidth=3;mc.strokeRect(1060,778,212,112);
+  mc.fillStyle='#dcc898';mc.fillRect(1048,770,236,10);mc.fillRect(1048,888,236,10);
+  mc.fillRect(1048,778,10,112);mc.fillRect(1270,778,10,112);
+  // lane lines
+  mc.strokeStyle='rgba(255,255,255,.3)';mc.lineWidth=1;
+  for(let l=1;l<3;l++){mc.beginPath();mc.moveTo(1060,778+l*37);mc.lineTo(1272,778+l*37);mc.stroke();}
+  mc.fillStyle='rgba(255,255,255,.6)';mc.fillRect(1110,882,8,6);mc.fillRect(1155,882,8,6);mc.fillRect(1200,882,8,6);
+
+  // Park
+  mc.fillStyle='#387a26';mc.fillRect(598,848,198,196);
+  mc.fillStyle='rgba(0,0,0,.12)';mc.beginPath();mc.arc(700,950,26,0,Math.PI*2);mc.fill();
+  mc.fillStyle='#3aa890';mc.beginPath();mc.arc(698,948,23,0,Math.PI*2);mc.fill();
+  mc.strokeStyle='#5ac8b0';mc.lineWidth=2;mc.beginPath();mc.arc(698,948,23,0,Math.PI*2);mc.stroke();
+  mc.fillStyle='#9ae8e0';mc.beginPath();mc.arc(698,948,9,0,Math.PI*2);mc.fill();
+  // benches in park
+  mc.fillStyle='#a07848';
+  [[634,892],[760,892],[634,1002],[760,1002]].forEach(([bx,by])=>mc.fillRect(bx,by,22,6));
+
+  // Plaza tiles
+  mc.fillStyle='#c4b480';mc.fillRect(498,1200,190,152);
+  mc.strokeStyle='#a49460';mc.lineWidth=1;
+  for(let i=0;i<4;i++)for(let j=0;j<3;j++) mc.strokeRect(498+i*47,1200+j*50,47,50);
+
+  // Tennis court
+  mc.fillStyle='#5880c0';mc.fillRect(200,1250,200,100);
+  mc.strokeStyle='#fff';mc.lineWidth=2;mc.strokeRect(206,1256,188,88);
+  mc.beginPath();mc.moveTo(300,1256);mc.lineTo(300,1344);mc.stroke();
+  mc.beginPath();mc.moveTo(206,1300);mc.lineTo(394,1300);mc.stroke();
+
+  mc.restore();
+
+  // ── Cliff platforms ──
+  for(const c of CLIFFS){
+    mc.fillStyle='rgba(0,0,0,.24)';
+    mc.beginPath();mc.ellipse(c.cx+8,c.cy+10,c.r,c.r*.52,0,0,Math.PI*2);mc.fill();
+    mc.fillStyle='#8a7458';mc.beginPath();mc.arc(c.cx,c.cy,c.r,0,Math.PI*2);mc.fill();
+    mc.fillStyle='#9e8868';mc.beginPath();mc.arc(c.cx,c.cy,c.r*.72,0,Math.PI*2);mc.fill();
+    mc.fillStyle='#b4a088';mc.beginPath();mc.arc(c.cx-c.r*.22,c.cy-c.r*.22,c.r*.27,0,Math.PI*2);mc.fill();
+    mc.strokeStyle='#4a3820';mc.lineWidth=4.5;mc.beginPath();mc.arc(c.cx,c.cy,c.r,0,Math.PI*2);mc.stroke();
+    mc.strokeStyle='rgba(255,200,50,.28)';mc.lineWidth=2;mc.setLineDash([7,6]);
+    mc.beginPath();mc.arc(c.cx,c.cy,c.r+12,0,Math.PI*2);mc.stroke();
+    mc.setLineDash([]);
+  }
+
+  // ── Small islands ──
+  for(const isl of ISLANDS){
+    mc.fillStyle=isl.r>80?'#c8ac60':'#bea052';
+    mc.beginPath();mc.arc(isl.cx,isl.cy,isl.r,0,Math.PI*2);mc.fill();
+    if(isl.r>80){
+      mc.fillStyle='#56a440';mc.beginPath();mc.arc(isl.cx,isl.cy,isl.r*.52,0,Math.PI*2);mc.fill();
+      mc.fillStyle='#66b44e';mc.beginPath();mc.arc(isl.cx-isl.r*.12,isl.cy-isl.r*.1,isl.r*.27,0,Math.PI*2);mc.fill();
+    }
+    // Structures per island
+    if(isl.id===0){ // Lighthouse
+      mc.fillStyle='#ececec';mc.fillRect(isl.cx-9,isl.cy-60,18,60);
+      mc.fillStyle='#cc3030';
+      mc.beginPath();mc.moveTo(isl.cx-11,isl.cy-60);mc.lineTo(isl.cx,isl.cy-82);mc.lineTo(isl.cx+11,isl.cy-60);mc.closePath();mc.fill();
+      mc.fillStyle='#f0cc20';mc.beginPath();mc.arc(isl.cx,isl.cy-60,6,0,Math.PI*2);mc.fill();
+      mc.fillStyle='rgba(255,220,0,.15)';mc.beginPath();mc.arc(isl.cx,isl.cy-60,24,0,Math.PI*2);mc.fill();
+    }
+    if(isl.id===1){ // Tiki hut
+      mc.fillStyle='#7a5828';mc.fillRect(isl.cx-22,isl.cy-18,44,24);
+      mc.fillStyle='#c0a030';
+      mc.beginPath();mc.moveTo(isl.cx-30,isl.cy-18);mc.lineTo(isl.cx,isl.cy-44);mc.lineTo(isl.cx+30,isl.cy-18);mc.closePath();mc.fill();
+      mc.fillStyle='#8a6430';mc.fillRect(isl.cx-4,isl.cy-18,8,24);
+    }
+    if(isl.id===2){ // Pier
+      mc.fillStyle='#8a6030';
+      mc.fillRect(isl.cx+isl.r*.44,isl.cy-5,68,10);
+      mc.fillRect(isl.cx+isl.r*.54,isl.cy-16,5,24);
+      mc.fillRect(isl.cx+isl.r*.54+30,isl.cy-16,5,24);
+    }
+  }
+
+  // Coral reefs (shallow water decor)
+  mc.fillStyle='rgba(255,90,70,.16)';
+  [[1820,340,42],[275,640,36],[1780,1560,40],[1020,176,30],[382,1762,32],[1885,908,26]].forEach(([cx,cy,r])=>{
+    mc.beginPath();mc.arc(cx,cy,r,0,Math.PI*2);mc.fill();
+  });
 })();
 
-// ════════════════════════════════════════════
-//  GAME OBJECTS
-// ════════════════════════════════════════════
-const player = { x:1000, y:1200, vx:0, vy:0, dashing:false };
-
-const stars = Array.from({ length: N_STARS }, () => {
-  const p = randPos(80, true, false);
-  return { ...p, phase: Math.random()*Math.PI*2, collected:false };
+// ══════════════════════════════════════════
+//  ANIMATED OCEAN RIPPLES
+// ══════════════════════════════════════════
+const ripples=Array.from({length:20},()=>{
+  let x,y,att=0;
+  do{x=Math.random()*MAP_W;y=Math.random()*MAP_H;att++;}while(isLand(x,y)&&att<30);
+  return{x,y,life:Math.random(),maxR:14+Math.random()*38};
 });
-let starsCollected = 0;
 
-const parts   = [];
-const palms   = Array.from({ length: N_PALMS   }, () => randPos(80, true, true));
-const benches = Array.from({ length: N_BENCHES }, () => randPos(100, true, false));
-
-// ════════════════════════════════════════════
-//  INPUT – KEYBOARD
-// ════════════════════════════════════════════
-const keys = new Set();
-window.addEventListener('keydown', e => { keys.add(e.key); e.key===' ' && e.preventDefault(); });
-window.addEventListener('keyup',   e => keys.delete(e.key));
-
-// ════════════════════════════════════════════
-//  INPUT – TOUCH
-// ════════════════════════════════════════════
-const jst = { active:false, bx:0, by:0, cx:0, cy:0, dx:0, dy:0, id:-1 };
-let dashTouch = false;
-const tchMap  = new Map();
-
-function touchRole(x, y) {
-  const w = canvas.width, h = canvas.height;
-  if (Math.hypot(x-(w-75), y-(h-75)) < 62) return 'dash';
-  if (x < w * 0.46) return 'joy';
-  return null;
+// ══════════════════════════════════════════
+//  GAME OBJECTS
+// ══════════════════════════════════════════
+function rndLand(){
+  let x,y,att=0;
+  do{x=60+Math.random()*(MAP_W-120);y=60+Math.random()*(MAP_H-120);att++;}
+  while(!isLand(x,y)&&att<200);
+  return{x,y};
 }
 
-canvas.addEventListener('touchstart', e => {
-  e.preventDefault();
-  for (const t of e.changedTouches) {
-    const role = touchRole(t.clientX, t.clientY);
-    if (!role) continue;
-    tchMap.set(t.identifier, role);
-    if (role === 'joy') {
-      Object.assign(jst, {
-        active:true, id:t.identifier,
-        bx:t.clientX, by:t.clientY,
-        cx:t.clientX, cy:t.clientY,
-        dx:0, dy:0
-      });
-    } else { dashTouch = true; }
-  }
-}, { passive:false });
+// 30 stars
+const stars30=Array.from({length:30},()=>({...rndLand(),phase:Math.random()*Math.PI*2,col:false}));
 
-canvas.addEventListener('touchmove', e => {
-  e.preventDefault();
-  for (const t of e.changedTouches) {
-    if (tchMap.get(t.identifier) !== 'joy') continue;
-    jst.cx = t.clientX; jst.cy = t.clientY;
-    const dx=jst.cx-jst.bx, dy=jst.cy-jst.by;
-    const len=Math.hypot(dx,dy);
-    jst.dx = len>0 ? (dx/len)*Math.min(len/55,1) : 0;
-    jst.dy = len>0 ? (dy/len)*Math.min(len/55,1) : 0;
-  }
-}, { passive:false });
+// 6 silver keys (2 easy on main island, 2 on NPC islands, 1 on tiny rock, 1 on cliff)
+const keyItems=[
+  {id:0,x:678, y:1002,col:false},
+  {id:1,x:1062,y:1348,col:false},
+  {id:2,x:1762,y:298, col:false},  // NPC island 0
+  {id:3,x:228, y:596, col:false},  // NPC island 1
+  {id:4,x:984, y:116, col:false},  // rock isle 3 (jet ski)
+  {id:5,x:1388,y:626, col:false},  // cliff 1 (hop needed)
+];
 
-function endTouch(id) {
-  const role=tchMap.get(id); tchMap.delete(id);
-  if (role==='joy')  { jst.active=false; jst.dx=jst.dy=0; }
-  if (role==='dash') { dashTouch=false; }
+// 5 treasure chests
+const chests=[
+  {id:0,x:988, y:128,  open:false,rw:'スター ×3'},   // rock isle 3 (jet ski)
+  {id:1,x:326, y:1800, open:false,rw:'シルバーキー'}, // rock isle 4 SW (jet ski)
+  {id:2,x:1930,y:958,  open:false,rw:'スター ×5'},   // rock isle 5 E (jet ski)
+  {id:3,x:418, y:690,  open:false,rw:'シルバーキー'}, // cliff 0 (hop needed)
+  {id:4,x:1390,y:640,  open:false,rw:'スター ×4'},   // cliff 1 (hop needed)
+];
+
+// 3 NPCs on large islands
+const npcs=[
+  {id:0,x:1750,y:310,name:'マリナ',col:'#e03870',
+   lines:['ようこそ、北東リゾート島へ！','ジェットスキーで颯爽と駆けるのが14:39気持ちいいわよ～！','レースを始める？ Fキーで決定！'],
+mission:{name:'北周りレース',started:false,done:false}},
+{id:1,x:198, y:608,name:'ケン',col:'#30a8e0',
+lines:['やあ！西の楽園島へ！','ここのヤシの木の実は格別だぜ！','よかったらレースで勝負しようぜ！'],
+mission:{name:'西回りクルーズ',started:false,done:false}},
+{id:2,x:1730,y:1650,name:'シズク',col:'#c060e8',
+lines:['南東の島へ、いらっしゃ～い♪','桟橋から飛び込むの、最高だよ～！','一緒に宝探しレース、どう？'],
+mission:{name:'南島宝探し',started:false,done:false}},
+];
+// Palms & benches
+const PALMS=Array.from({length:55},()=>rndLand());
+const BENCHES=Array.from({length:22},()=>rndLand());
+// Particles
+const parts=[];
+function spawnBurst(x,y,col){
+for(let i=0;i<14;i++){
+const a=(i/14)Math.PI2,s=1.4+Math.random()*3.8;
+parts.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s-1.2,
+life:1,r:3+Math.random()*4,
+color:col||hsl(${40+Math.random()*30},100%,65%)});
 }
-['touchend','touchcancel'].forEach(ev =>
-  canvas.addEventListener(ev, e => {
-    e.preventDefault();
-    for (const t of e.changedTouches) endTouch(t.identifier);
-  }, { passive:false })
-);
-
-// ════════════════════════════════════════════
-//  PARTICLE BURST
-// ════════════════════════════════════════════
-function spawnBurst(x, y) {
-  for (let i=0;i<16;i++) {
-    const a=(i/16)*Math.PI*2;
-    const spd=1.5+Math.random()*3.5;
-    parts.push({
-      x, y,
-      vx:Math.cos(a)*spd,
-      vy:Math.sin(a)*spd-1.4,
-      life:1,
-      r:3+Math.random()*4,
-      color:`hsl(${40+Math.random()*30},100%,${55+Math.random()*20}%)`
-    });
-  }
 }
-
-// ════════════════════════════════════════════
-//  DRAWING FUNCTIONS
-// ════════════════════════════════════════════
-function drawPalm(x, y) {
-  // Shadow
-  ctx.save();
-  ctx.translate(x+12, y+4); ctx.scale(1,.28);
-  ctx.fillStyle='rgba(0,0,0,.22)';
-  ctx.beginPath(); ctx.arc(0,0,18,0,Math.PI*2); ctx.fill();
-  ctx.restore();
-  // Trunk
-  ctx.strokeStyle='#7a5818'; ctx.lineWidth=7; ctx.lineCap='round';
-  ctx.beginPath();
-  ctx.moveTo(x,y);
-  ctx.quadraticCurveTo(x+9,y-22,x+6,y-46);
-  ctx.stroke();
-  // Fronds
-  const angles=[-1.2,-.65,-.1,.4,.9,1.5,2.1,2.7,-1.75];
-  const cols=['#2a8028','#358a30','#248622','#3c9438'];
-  angles.forEach((a,i) => {
-    ctx.save();
-    ctx.translate(x+6,y-47); ctx.rotate(a-Math.PI/2);
-    ctx.fillStyle=cols[i%4];
-    ctx.beginPath(); ctx.ellipse(0,-17,4.5,22,0,0,Math.PI*2); ctx.fill();
-    ctx.restore();
-  });
-  ctx.fillStyle='#6b3a10';
-  ctx.beginPath(); ctx.arc(x+4,y-46,5,0,Math.PI*2); ctx.fill();
-}
-
-function drawBench(x, y) {
-  ctx.fillStyle='#888';
-  ctx.fillRect(x-13,y+2,4,8); ctx.fillRect(x+9,y+2,4,8);
-  ctx.fillStyle='#a07848'; ctx.fillRect(x-16,y-3,32,6);
-  ctx.fillStyle='#8a6438'; ctx.fillRect(x-16,y-11,32,6);
-}
-
-function drawStarShape(cx, cy, oR, iR, n) {
-  ctx.beginPath();
-  for (let i=0;i<n*2;i++) {
-    const a=(i*Math.PI/n)-Math.PI/2;
-    const r=i%2===0?oR:iR;
-    i===0 ? ctx.moveTo(cx+Math.cos(a)*r,cy+Math.sin(a)*r)
-           : ctx.lineTo(cx+Math.cos(a)*r,cy+Math.sin(a)*r);
-  }
-  ctx.closePath();
-}
-
-function drawStarObj(s, ts) {
-  if (s.collected) return;
-  const pulse = .82+.18*Math.sin(ts*.004+s.phase);
-  const sz = 12*pulse;
-  const g = ctx.createRadialGradient(s.x,s.y,0,s.x,s.y,sz*3);
-  g.addColorStop(0,`rgba(255,220,40,${.7*pulse})`);
-  g.addColorStop(1,'rgba(255,160,0,0)');
-  ctx.fillStyle=g;
-  ctx.beginPath(); ctx.arc(s.x,s.y,sz*3,0,Math.PI*2); ctx.fill();
-  ctx.fillStyle='#FFE428';
-  drawStarShape(s.x,s.y,sz,sz*.4,5); ctx.fill();
-  ctx.fillStyle='rgba(255,255,255,.75)';
-  drawStarShape(s.x-sz*.15,s.y-sz*.15,sz*.3,sz*.12,5); ctx.fill();
-}
-
-function drawPlayer(ts) {
-  const {x,y,vx,vy,dashing} = player;
-  // Shadow
-  ctx.fillStyle='rgba(0,0,0,.25)';
-  ctx.beginPath();
-  ctx.ellipse(x+4,y+PLAYER_R-2,PLAYER_R,5,0,0,Math.PI*2); ctx.fill();
-  // Dash trail
-  if (dashing) {
-    for (let i=3;i>=1;i--) {
-      ctx.fillStyle=`rgba(255,120,0,${.1*i})`;
-      ctx.beginPath();
-      ctx.arc(x-vx*i*3,y-vy*i*3,PLAYER_R*(.9-i*.05),0,Math.PI*2); ctx.fill();
-    }
-  }
-  // Body
-  ctx.fillStyle = dashing ? '#ff8800' : '#2196F3';
-  ctx.beginPath(); ctx.arc(x,y,PLAYER_R,0,Math.PI*2); ctx.fill();
-  // Hat
-  ctx.fillStyle='#b52020';
-  ctx.fillRect(x-PLAYER_R-2,y-PLAYER_R+3,PLAYER_R*2+4,4);
-  ctx.fillStyle='#d83030';
-  ctx.beginPath(); ctx.arc(x,y-PLAYER_R+3,PLAYER_R*.85,Math.PI,0); ctx.fill();
-  // Face
-  ctx.fillStyle='#ffc070';
-  ctx.beginPath(); ctx.arc(x,y+2,PLAYER_R*.65,0,Math.PI*2); ctx.fill();
-  ctx.fillStyle='#333';
-  ctx.beginPath();
-  ctx.arc(x-4,y,2,0,Math.PI*2); ctx.arc(x+4,y,2,0,Math.PI*2); ctx.fill();
-  ctx.strokeStyle='#aa4020'; ctx.lineWidth=1.5;
-  ctx.beginPath(); ctx.arc(x,y+3,4,.1*Math.PI,.9*Math.PI); ctx.stroke();
-  // Dash glow ring
-  if (dashing) {
-    const gr=ctx.createRadialGradient(x,y,PLAYER_R,x,y,PLAYER_R+12);
-    gr.addColorStop(0,'rgba(255,140,0,.6)');
-    gr.addColorStop(1,'rgba(255,80,0,0)');
-    ctx.fillStyle=gr;
-    ctx.beginPath(); ctx.arc(x,y,PLAYER_R+12,0,Math.PI*2); ctx.fill();
-  }
-}
-
-function drawTouchUI() {
-  const w=canvas.width, h=canvas.height;
-  const JR=55;
-  const jbx = jst.active ? jst.bx : 85;
-  const jby = jst.active ? jst.by : h-85;
-
-  // Joystick base
-  ctx.fillStyle='rgba(255,255,255,.07)';
-  ctx.beginPath(); ctx.arc(jbx,jby,JR,0,Math.PI*2); ctx.fill();
-  ctx.strokeStyle='rgba(255,255,255,.22)'; ctx.lineWidth=2;
-  ctx.beginPath(); ctx.arc(jbx,jby,JR,0,Math.PI*2); ctx.stroke();
-
-  // Handle
-  let hx=jbx, hy=jby;
-  if (jst.active) {
-    const dx=jst.cx-jst.bx, dy=jst.cy-jst.by;
-    const len=Math.hypot(dx,dy);
-    if (len>0) {
-      const cl=Math.min(len,JR);
-      hx=jbx+(dx/len)*cl; hy=jby+(dy/len)*cl;
-    }
-  }
-  ctx.fillStyle = jst.active ? 'rgba(255,255,255,.55)' : 'rgba(255,255,255,.18)';
-  ctx.beginPath(); ctx.arc(hx,hy,26,0,Math.PI*2); ctx.fill();
-  ctx.strokeStyle='rgba(255,255,255,.4)'; ctx.lineWidth=2;
-  ctx.beginPath(); ctx.arc(hx,hy,26,0,Math.PI*2); ctx.stroke();
-  if (!jst.active) {
-    ctx.fillStyle='rgba(255,255,255,.28)';
-    ctx.font='18px Arial'; ctx.textAlign='center'; ctx.textBaseline='middle';
-    ctx.fillText('✦',jbx,jby);
-  }
-
-  // B Button (dash)
-  const bx=w-75, by=h-75;
-  const active=dashTouch||keys.has('Shift');
-  const bg=ctx.createRadialGradient(bx,by-5,0,bx,by,40);
-  bg.addColorStop(0, active?'rgba(255,130,0,.92)':'rgba(210,40,70,.8)');
-  bg.addColorStop(1, active?'rgba(200,70,0,.72)':'rgba(150,10,40,.65)');
-  ctx.fillStyle=bg;
-  ctx.beginPath(); ctx.arc(bx,by,38,0,Math.PI*2); ctx.fill();
-  ctx.strokeStyle=active?'rgba(255,190,40,.9)':'rgba(255,100,130,.6)';
-  ctx.lineWidth=3;
-  ctx.beginPath(); ctx.arc(bx,by,38,0,Math.PI*2); ctx.stroke();
-  ctx.fillStyle='#fff';
-  ctx.shadowColor='rgba(0,0,0,.5)'; ctx.shadowBlur=5;
-  ctx.font='bold 22px Arial'; ctx.textAlign='center'; ctx.textBaseline='middle';
-  ctx.fillText('B',bx,by);
-  ctx.shadowBlur=0;
-  if (active) {
-    ctx.fillStyle='rgba(255,210,0,.9)';
-    ctx.font='bold 11px Arial';
-    ctx.fillText('DASH!',bx,by+54);
-  }
-}
-
-function drawMinimap() {
-  const mx=canvas.width-114, my=10;
-  const mw=104, mh=104;
-  const sc=mw/MAP_W;
-
-  ctx.fillStyle='rgba(0,0,0,.55)';
-  ctx.fillRect(mx-1,my-1,mw+2,mh+2);
-
-  // Zones
-  ctx.fillStyle='#4d9640'; ctx.fillRect(mx,my,mw,mh);
-  ctx.fillStyle='#c4a470';
-  ctx.fillRect(mx+1660*sc,my,(MAP_W-1660)*sc,mh);
-  ctx.fillRect(mx,my+1660*sc,mw,(MAP_H-1660)*sc);
-  ctx.fillStyle='#2e9fce';
-  ctx.fillRect(mx+1860*sc,my,(MAP_W-1860)*sc,mh);
-  ctx.fillRect(mx,my+1860*sc,mw,(MAP_H-1860)*sc);
-  ctx.fillStyle='#5e5e5e';
-  ctx.fillRect(mx,my+940*sc,mw,120*sc);
-  ctx.fillRect(mx+940*sc,my,120*sc,mh);
-
-  // Stars
-  ctx.fillStyle='#FFD700';
-  for (const s of stars)
-    if (!s.collected) ctx.fillRect(mx+s.x*sc-1,my+s.y*sc-1,2,2);
-
-  // Player
-  ctx.fillStyle='#00ff88';
-  ctx.beginPath(); ctx.arc(mx+player.x*sc,my+player.y*sc,3,0,Math.PI*2); ctx.fill();
-
-  // Viewport rect
-  ctx.strokeStyle='rgba(255,255,255,.4)'; ctx.lineWidth=1;
-  ctx.strokeRect(
-    mx+(player.x-canvas.width/2)*sc,
-    my+(player.y-canvas.height/2)*sc,
-    canvas.width*sc, canvas.height*sc
-  );
-  ctx.strokeStyle='rgba(255,255,255,.3)'; ctx.lineWidth=1;
-  ctx.strokeRect(mx,my,mw,mh);
-
-  // Label
-  ctx.fillStyle='rgba(255,255,255,.5)';
-  ctx.font='9px Arial'; ctx.textAlign='left'; ctx.textBaseline='top';
-  ctx.fillText('MAP',mx+3,my+3);
-}
-
-// ════════════════════════════════════════════
-//  MESSAGE
-// ════════════════════════════════════════════
+// ══════════════════════════════════════════
+//  PLAYER STATE
+// ══════════════════════════════════════════
+const player={
+x:951,y:1200,vx:0,vy:0,
+dashing:false,onWater:false,hopping:false,
+terrain:'grass',
+// Hop mechanic
+hopVx:0,hopVy:0,hopPhase:0,hopDur:0,
+};
+// ── Inventory ──
+const inv={stars:0,keys:0,stamps:0,outfit:'サーファー'};
+function setOutfit(o){inv.outfit=o;updateRightHud();}
+// ── Speech ──
+let talkNpc=null,talkLine=0,talkTimer=0;
 let msgTimer=null;
-function showMsg(text) {
-  msgEl.textContent=text; msgEl.style.opacity='1';
-  clearTimeout(msgTimer);
-  msgTimer=setTimeout(()=>msgEl.style.opacity='0',3200);
+function showMsg(t,dur=3000){
+msgEl.textContent=t;msgEl.style.opacity='1';
+clearTimeout(msgTimer);msgTimer=setTimeout(()=>msgEl.style.opacity='0',dur);
 }
-
-// ════════════════════════════════════════════
+// Right HUD
+const rHudEl=document.createElement('div');
+rHudEl.style.cssText='position:fixed;top:12px;right:12px;background:rgba(0,0,0,.65);backdrop-filter:blur(5px);color:#fff;font:bold 13px Arial;padding:8px 14px;border-radius:14px;pointer-events:none;line-height:1.65;min-width:130px;text-align:left;';
+document.body.appendChild(rHudEl);
+function updateRightHud(){
+rHudEl.innerHTML=🗝️ キー: ${inv.keys}<br>👕 ${inv.outfit}<br>📮 スタンプ: ${inv.stamps};
+}
+updateRightHud();
+// ══════════════════════════════════════════
+//  INPUT – KEYBOARD
+// ══════════════════════════════════════════
+const keys=new Set();
+let interactJustPressed=false;
+window.addEventListener('keydown',e=>{
+keys.add(e.key);
+if(e.key==='f'||e.key==='F'||e.key==='x'||e.key==='X') interactJustPressed=true;
+if(e.key===' ') e.preventDefault();
+});
+window.addEventListener('keyup',e=>keys.delete(e.key));
+// ══════════════════════════════════════════
+//  INPUT – TOUCH
+// ══════════════════════════════════════════
+const jst={active:false,bx:0,by:0,cx:0,cy:0,dx:0,dy:0,id:-1};
+let dashTouch=false,interactTouch=false;
+const tchMap=new Map();
+function touchRole(x,y){
+const w=C.width,h=C.height;
+if(Math.hypot(x-(w-75),y-(h-75))<60) return 'dash';
+if(Math.hypot(x-(w-75),y-(h-170))<50) return 'act';  // action button
+if(x<w*.48) return 'joy';
+return null;
+}
+C.addEventListener('touchstart',e=>{
+e.preventDefault();
+for(const t of e.changedTouches){
+const role=touchRole(t.clientX,t.clientY);
+if(!role) continue;
+tchMap.set(t.identifier,role);
+if(role==='joy'){Object.assign(jst,{active:true,id:t.identifier,bx:t.clientX,by:t.clientY,cx:t.clientX,cy:t.clientY,dx:0,dy:0});}
+else if(role==='dash') dashTouch=true;
+else if(role==='act'){ interactTouch=true; interactJustPressed=true; }
+}
+},{passive:false});
+C.addEventListener('touchmove',e=>{
+e.preventDefault();
+for(const t of e.changedTouches){
+if(tchMap.get(t.identifier)!=='joy') continue;
+jst.cx=t.clientX;jst.cy=t.clientY;
+const dx=jst.cx-jst.bx,dy=jst.cy-jst.by,len=Math.hypot(dx,dy);
+jst.dx=len>0?(dx/len)*Math.min(len/55,1):0;
+jst.dy=len>0?(dy/len)*Math.min(len/55,1):0;
+}
+},{passive:false});
+function endTch(id){
+const role=tchMap.get(id);tchMap.delete(id);
+if(role==='joy'){jst.active=false;jst.dx=jst.dy=0;}
+if(role==='dash') dashTouch=false;
+if(role==='act') interactTouch=false;
+}
+['touchend','touchcancel'].forEach(ev=>C.addEventListener(ev,e=>{e.preventDefault();for(const t of e.changedTouches)endTch(t.identifier);},{passive:false}));
+// ══════════════════════════════════════════
+//  NPC INTERACT
+// ══════════════════════════════════════════
+function tryInteract(){
+if(!interactJustPressed) return;
+interactJustPressed=false;
+// NPC talk
+for(const n of npcs){
+if(Math.hypot(player.x-n.x,player.y-n.y)<56){
+if(talkNpc===n){
+talkLine++;
+if(talkLine>=n.lines.length){
+// last line → start mission stub
+if(!n.mission.started){
+n.mission.started=true;
+showMsg(🏁 ミッション開始：「${n.mission.name}」（スタブ）,4000);
+inv.stamps++;updateRightHud();
+}
+talkNpc=null;talkLine=0;
+} else {
+showMsg(${n.name}「${n.lines[talkLine]}」,4500);
+}
+} else {
+talkNpc=n;talkLine=0;
+showMsg(${n.name}「${n.lines[0]}」,4500);
+}
+return;
+}
+}
+talkNpc=null;
+// Chest open
+for(const ch of chests){
+if(!ch.open&&Math.hypot(player.x-ch.x,player.y-ch.y)<38){
+ch.open=true;
+if(ch.rw.includes('キー')){inv.keys++;updateRightHud();showMsg(📦 宝箱を開けた！シルバーキー +1 🗝️,3200);}
+else if(ch.rw.includes('×3')){inv.stars+=3;showMsg(📦 宝箱を開けた！スター +3 ⭐,3000);}
+else if(ch.rw.includes('×4')){inv.stars+=4;showMsg(📦 宝箱を開けた！スター +4 ⭐,3000);}
+else if(ch.rw.includes('×5')){inv.stars+=5;showMsg(📦 宝箱を開けた！スター +5 ⭐,3000);}
+spawnBurst(ch.x,ch.y,'#e8c030');
+updateStarHud();
+return;
+}
+}
+}
+function updateStarHud(){
+const total=inv.stars;
+hudEl.textContent=⭐ Stars: ${total} / 30;
+hudEl.classList.remove('pop');void hudEl.offsetWidth;hudEl.classList.add('pop');
+}
+// ══════════════════════════════════════════
+//  DRAW FUNCTIONS
+// ══════════════════════════════════════════
+function drawPalm(x,y){
+ctx.save();ctx.translate(x+10,y+4);ctx.scale(1,.28);
+ctx.fillStyle='rgba(0,0,0,.22)';ctx.beginPath();ctx.arc(0,0,16,0,Math.PI2);ctx.fill();ctx.restore();
+ctx.strokeStyle='#7a5418';ctx.lineWidth=6;ctx.lineCap='round';
+ctx.beginPath();ctx.moveTo(x,y);ctx.quadraticCurveTo(x+8,y-20,x+5,y-44);ctx.stroke();
+[-1.2,-.65,-.1,.4,.9,1.5,2.1,2.7,-1.75].forEach((a,i)=>{
+ctx.save();ctx.translate(x+5,y-44);ctx.rotate(a-Math.PI/2);
+ctx.fillStyle=['#2a8028','#358a30','#248622','#3c9438'][i%4];
+ctx.beginPath();ctx.ellipse(0,-16,4,20,0,0,Math.PI2);ctx.fill();ctx.restore();
+});
+ctx.fillStyle='#6b3a10';ctx.beginPath();ctx.arc(x+3,y-44,4,0,Math.PI*2);ctx.fill();
+}
+function drawBench(x,y){
+ctx.fillStyle='#888';ctx.fillRect(x-11,y+2,4,7);ctx.fillRect(x+7,y+2,4,7);
+ctx.fillStyle='#a07848';ctx.fillRect(x-14,y-3,28,5);
+ctx.fillStyle='#8a6438';ctx.fillRect(x-14,y-10,28,5);
+}
+function drawStarShape(cx,cy,oR,iR){
+ctx.beginPath();
+for(let i=0;i<10;i++){const a=(i*Math.PI/5)-Math.PI/2,r=i%2?iR:oR;i?ctx.lineTo(cx+Math.cos(a)*r,cy+Math.sin(a)*r):ctx.moveTo(cx+Math.cos(a)*r,cy+Math.sin(a)*r);}
+ctx.closePath();
+}
+function drawStarObj(s,ts){
+if(s.col) return;
+const pulse=.82+.18Math.sin(ts.004+s.phase),sz=12pulse;
+const g=ctx.createRadialGradient(s.x,s.y,0,s.x,s.y,sz2.8);
+g.addColorStop(0,rgba(255,220,40,${.65*pulse}));g.addColorStop(1,'rgba(255,160,0,0)');
+ctx.fillStyle=g;ctx.beginPath();ctx.arc(s.x,s.y,sz2.8,0,Math.PI2);ctx.fill();
+ctx.fillStyle='#FFE428';drawStarShape(s.x,s.y,sz,sz*.4);ctx.fill();
+}
+function drawKeyItem(k,ts){
+if(k.col) return;
+const bob=Math.sin(ts*.0028+k.id)5;
+ctx.save();ctx.translate(k.x,k.y+bob);
+ctx.shadowColor='#aad8ff';ctx.shadowBlur=14;
+ctx.fillStyle='#b8e0ff';
+ctx.beginPath();
+ctx.arc(0,-6,7,0,Math.PI2);ctx.fill();
+ctx.fillStyle='#c8eaff';ctx.beginPath();ctx.arc(-2,-7,3,0,Math.PI*2);ctx.fill();
+ctx.strokeStyle='#b8e0ff';ctx.lineWidth=4;ctx.lineCap='round';
+ctx.beginPath();ctx.moveTo(4,-2);ctx.lineTo(18,10);ctx.stroke();
+ctx.fillStyle='#b8e0ff';ctx.fillRect(12,7,6,4);ctx.fillRect(16,11,6,4);
+ctx.restore();ctx.shadowBlur=0;
+}
+function drawChest(ch,ts){
+const pulse=Math.sin(ts*.003+ch.id)3;
+ctx.save();ctx.translate(ch.x,ch.y);
+if(!ch.open){
+ctx.fillStyle='#8a5818';ctx.fillRect(-14,-10,28,18);
+ctx.fillStyle='#a06820';ctx.fillRect(-14,-18,28,10);
+ctx.strokeStyle='#d4a040';ctx.lineWidth=2;
+ctx.strokeRect(-14,-18,28,28);
+ctx.fillStyle='#d4a040';ctx.fillRect(-4,-14,8,5);ctx.beginPath();ctx.arc(0,-10,3,0,Math.PI2);ctx.fill();
+// Glow
+const g=ctx.createRadialGradient(0,0,4,0,0,28+pulse);
+g.addColorStop(0,'rgba(255,200,40,.38)');g.addColorStop(1,'rgba(255,150,0,0)');
+ctx.fillStyle=g;ctx.beginPath();ctx.arc(0,0,28+pulse,0,Math.PI*2);ctx.fill();
+ctx.fillStyle='rgba(255,255,255,.8)';ctx.font='9px Arial';ctx.textAlign='center';ctx.fillText('F',0,32);
+} else {
+ctx.fillStyle='#5a3808';ctx.fillRect(-14,0,28,10);
+ctx.fillStyle='#7a4e18';ctx.fillRect(-14,-12,28,12);ctx.save();
+ctx.translate(0,-12);ctx.rotate(-.6);ctx.fillStyle='#7a4e18';ctx.fillRect(-14,-10,28,10);ctx.restore();
+ctx.strokeStyle='#a07030';ctx.lineWidth=2;
+ctx.strokeRect(-14,0,28,10);
+}
+ctx.restore();
+}
+function drawNPC(n,ts){
+const bob=Math.sin(ts*.002+n.id)3;
+ctx.save();ctx.translate(n.x,n.y+bob);
+// Shadow
+ctx.fillStyle='rgba(0,0,0,.2)';ctx.beginPath();ctx.ellipse(2,8,10,4,0,0,Math.PI2);ctx.fill();
+// Body
+ctx.fillStyle=n.col;ctx.beginPath();ctx.arc(0,-2,11,0,Math.PI2);ctx.fill();
+ctx.fillStyle='#ffc880';ctx.beginPath();ctx.arc(0,-10,7,0,Math.PI2);ctx.fill();
+// Eyes
+ctx.fillStyle='#333';ctx.beginPath();ctx.arc(-2.5,-10,1.5,0,Math.PI2);ctx.arc(2.5,-10,1.5,0,Math.PI2);ctx.fill();
+// Exclamation
+if(Math.hypot(player.x-n.x,player.y-n.y)<90){
+ctx.fillStyle='#ffe040';ctx.font='bold 16px Arial';ctx.textAlign='center';ctx.fillText('!',0,-26);
+}
+ctx.restore();
+}
+function drawJetSki(px,py,vx,vy,ts){
+const angle=Math.atan2(vy,vx)||0;
+const speed=Math.hypot(vx,vy);
+ctx.save();ctx.translate(px,py);ctx.rotate(angle);
+// Wake
+if(speed>0.2){
+for(let i=0;i<3;i++){
+const wa=Math.PI*.85+.18i,wr=6+i8;
+ctx.strokeStyle=rgba(255,255,255,${.4-i*.1});ctx.lineWidth=3-i*.5;
+ctx.beginPath();ctx.arc(-wr*.6,0,wr,wa,-wa);ctx.stroke();
+}
+}
+// Hull
+ctx.fillStyle='#d02030';
+ctx.beginPath();ctx.moveTo(24,0);ctx.lineTo(-12,-8);ctx.lineTo(-16,0);ctx.lineTo(-12,8);ctx.closePath();ctx.fill();
+ctx.fillStyle='#f04050';
+ctx.beginPath();ctx.moveTo(20,0);ctx.lineTo(-8,-5);ctx.lineTo(-10,0);ctx.lineTo(-8,5);ctx.closePath();ctx.fill();
+ctx.fillStyle='rgba(180,240,255,.8)';ctx.beginPath();ctx.arc(6,-1,4,0,Math.PI2);ctx.fill();
+// Handle
+ctx.strokeStyle='#888';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(4,-5);ctx.lineTo(4,-13);ctx.stroke();
+ctx.strokeStyle='#aaa';ctx.lineWidth=2.5;ctx.beginPath();ctx.arc(4,-13,6,Math.PI,0);ctx.stroke();
+// Engine foam
+if(speed>0.15){
+ctx.fillStyle=rgba(255,255,255,${Math.min(.7,speed*.15)});
+ctx.beginPath();ctx.arc(-16,0,5+speed1.8,0,Math.PI*2);ctx.fill();
+}
+ctx.restore();
+}
+function drawPlayer(px,py,terrain,ts,vx,vy){
+const dashing=player.dashing;
+// Hop arc visualization
+const hop=player.hopping;
+const hopT=hop?Math.sin(player.hopPhase/player.hopDur*Math.PI)*12:0;
+if(terrain==='water'||hop){
+drawJetSki(px,py,vx,vy,ts);
+return;
+}
+// Shadow
+ctx.fillStyle='rgba(0,0,0,.22)';ctx.beginPath();ctx.ellipse(px+4,py+PR-1,PR*.9,4,0,0,Math.PI2);ctx.fill();
+// Trail
+if(dashing){
+for(let i=3;i>=1;i--){
+ctx.fillStyle=rgba(255,110,0,${.1*i});ctx.beginPath();
+ctx.arc(px-vxi3,py-vyi3,PR(.9-i*.05),0,Math.PI2);ctx.fill();
+}
+}
+// Body
+ctx.fillStyle=dashing?'#ff8800':'#2196F3';ctx.beginPath();ctx.arc(px,py,PR,0,Math.PI2);ctx.fill();
+ctx.fillStyle='#c02828';ctx.fillRect(px-PR-1,py-PR+3,PR2+2,3.5);
+ctx.fillStyle='#dc3838';ctx.beginPath();ctx.arc(px,py-PR+3,PR.82,Math.PI,0);ctx.fill();
+ctx.fillStyle='#ffc070';ctx.beginPath();ctx.arc(px,py+2,PR*.62,0,Math.PI2);ctx.fill();
+ctx.fillStyle='#333';ctx.beginPath();ctx.arc(px-3.5,py,1.8,0,Math.PI2);ctx.arc(px+3.5,py,1.8,0,Math.PI2);ctx.fill();
+ctx.strokeStyle='#aa4020';ctx.lineWidth=1.5;ctx.beginPath();ctx.arc(px,py+3,3.5,.12Math.PI,.88Math.PI);ctx.stroke();
+if(dashing){
+const gr=ctx.createRadialGradient(px,py,PR,px,py,PR+11);
+gr.addColorStop(0,'rgba(255,130,0,.6)');gr.addColorStop(1,'rgba(255,70,0,0)');
+ctx.fillStyle=gr;ctx.beginPath();ctx.arc(px,py,PR+11,0,Math.PI2);ctx.fill();
+}
+}
+function drawTouchUI(){
+const w=C.width,h=C.height,JR=55;
+const jbx=jst.active?jst.bx:82,jby=jst.active?jst.by:h-82;
+// Joy base
+ctx.fillStyle='rgba(255,255,255,.07)';ctx.beginPath();ctx.arc(jbx,jby,JR,0,Math.PI2);ctx.fill();
+ctx.strokeStyle='rgba(255,255,255,.2)';ctx.lineWidth=2;ctx.beginPath();ctx.arc(jbx,jby,JR,0,Math.PI2);ctx.stroke();
+let hx=jbx,hy=jby;
+if(jst.active){const dx=jst.cx-jst.bx,dy=jst.cy-jst.by,len=Math.hypot(dx,dy);if(len>0){const cl=Math.min(len,JR);hx=jbx+dx/lencl;hy=jby+dy/lencl;}}
+ctx.fillStyle=jst.active?'rgba(255,255,255,.52)':'rgba(255,255,255,.16)';ctx.beginPath();ctx.arc(hx,hy,24,0,Math.PI2);ctx.fill();
+ctx.strokeStyle='rgba(255,255,255,.35)';ctx.lineWidth=2;ctx.beginPath();ctx.arc(hx,hy,24,0,Math.PI2);ctx.stroke();
+if(!jst.active){ctx.fillStyle='rgba(255,255,255,.28)';ctx.font='16px Arial';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText('✦',jbx,jby);}
+// B (dash)
+const bx=w-75,by=h-75,bd=dashTouch||keys.has('Shift');
+const bg=ctx.createRadialGradient(bx,by-5,0,bx,by,38);
+bg.addColorStop(0,bd?'rgba(255,130,0,.92)':'rgba(210,40,70,.8)');bg.addColorStop(1,bd?'rgba(200,70,0,.7)':'rgba(150,10,40,.62)');
+ctx.fillStyle=bg;ctx.beginPath();ctx.arc(bx,by,36,0,Math.PI2);ctx.fill();
+ctx.strokeStyle=bd?'rgba(255,190,40,.9)':'rgba(255,100,130,.5)';ctx.lineWidth=2.5;ctx.beginPath();ctx.arc(bx,by,36,0,Math.PI2);ctx.stroke();
+ctx.fillStyle='#fff';ctx.shadowColor='rgba(0,0,0,.5)';ctx.shadowBlur=4;ctx.font='bold 20px Arial';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText('B',bx,by);ctx.shadowBlur=0;
+// A (action/interact)
+const ax=w-75,ay=h-168,ad=interactTouch;
+const ag=ctx.createRadialGradient(ax,ay-4,0,ax,ay,34);
+ag.addColorStop(0,ad?'rgba(40,200,40,.92)':'rgba(30,160,30,.8)');ag.addColorStop(1,ad?'rgba(10,140,10,.7)':'rgba(10,100,10,.62)');
+ctx.fillStyle=ag;ctx.beginPath();ctx.arc(ax,ay,32,0,Math.PI2);ctx.fill();
+ctx.strokeStyle=ad?'rgba(140,255,140,.9)':'rgba(80,200,80,.5)';ctx.lineWidth=2.5;ctx.beginPath();ctx.arc(ax,ay,32,0,Math.PI2);ctx.stroke();
+ctx.fillStyle='#fff';ctx.shadowColor='rgba(0,0,0,.4)';ctx.shadowBlur=4;ctx.font='bold 18px Arial';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText('A',ax,ay);ctx.shadowBlur=0;
+ctx.fillStyle='rgba(255,255,255,.55)';ctx.font='9px Arial';ctx.fillText('話す',ax,ay+44);
+}
+function drawMinimap(){
+const mx=C.width-108,my=10,mw=98,mh=98,sc=mw/MAP_W;
+ctx.fillStyle='rgba(0,0,0,.58)';ctx.fillRect(mx-1,my-1,mw+2,mh+2);
+// Ocean bg
+ctx.fillStyle='#1a75b0';ctx.fillRect(mx,my,mw,mh);
+// Main island
+ctx.fillStyle='#5a9840';
+ctx.beginPath();ctx.ellipse(mx+MI.cxsc,my+MI.cysc,MI.rxsc,MI.rysc,0,0,Math.PI2);ctx.fill();
+// Small islands
+for(const isl of ISLANDS){ctx.fillStyle='#9ab850';ctx.beginPath();ctx.arc(mx+isl.cxsc,my+isl.cysc,Math.max(2,isl.rsc),0,Math.PI2);ctx.fill();}
+// Stars
+ctx.fillStyle='#FFD700';for(const s of stars30)if(!s.col)ctx.fillRect(mx+s.xsc-1,my+s.ysc-1,2,2);
+// Keys
+ctx.fillStyle='#aaddff';for(const k of keyItems)if(!k.col)ctx.fillRect(mx+k.xsc-1,my+k.ysc-1,2,2);
+// Player
+ctx.fillStyle='#00ff88';ctx.beginPath();ctx.arc(mx+player.xsc,my+player.ysc,3,0,Math.PI2);ctx.fill();
+// Viewport
+ctx.strokeStyle='rgba(255,255,255,.38)';ctx.lineWidth=1;
+ctx.strokeRect(mx+(player.x-C.width/2)sc,my+(player.y-C.height/2)sc,C.widthsc,C.heightsc);
+ctx.strokeStyle='rgba(255,255,255,.28)';ctx.strokeRect(mx,my,mw,mh);
+ctx.fillStyle='rgba(255,255,255,.45)';ctx.font='9px Arial';ctx.textAlign='left';ctx.textBaseline='top';ctx.fillText('MAP',mx+3,my+3);
+}
+// ══════════════════════════════════════════
+//  TERRAIN TRANSITION FLASH
+// ══════════════════════════════════════════
+let prevTerrain='grass',terrainFlash=0;
+// ══════════════════════════════════════════
 //  MAIN LOOP
-// ════════════════════════════════════════════
+// ══════════════════════════════════════════
 let lastTs=0;
-
-function loop(ts) {
-  requestAnimationFrame(loop);
-  const dt = Math.min(ts-lastTs,50)/16.667;
-  lastTs = ts;
-
-  // ── Player ──
-  player.dashing = keys.has('Shift') || dashTouch;
-
-  let mx=0, my=0;
-  if (keys.has('ArrowLeft')  || keys.has('a') || keys.has('A')) mx -= 1;
-  if (keys.has('ArrowRight') || keys.has('d') || keys.has('D')) mx += 1;
-  if (keys.has('ArrowUp')    || keys.has('w') || keys.has('W')) my -= 1;
-  if (keys.has('ArrowDown')  || keys.has('s') || keys.has('S')) my += 1;
-  if (jst.active) { mx+=jst.dx; my+=jst.dy; }
-
-  const il=Math.hypot(mx,my);
-  if (il>1) { mx/=il; my/=il; }
-
-  const spd = BASE_SPD * (player.dashing ? DASH_MULT : 1) * dt;
-  player.vx = mx*spd; player.vy = my*spd;
-  player.x = Math.max(PLAYER_R, Math.min(MAP_W-PLAYER_R, player.x+player.vx));
-  player.y = Math.max(PLAYER_R, Math.min(MAP_H-PLAYER_R, player.y+player.vy));
-
-  // ── Star collection ──
-  for (const s of stars) {
-    if (!s.collected && Math.hypot(player.x-s.x,player.y-s.y) < COLLECT_R) {
-      s.collected = true;
-      starsCollected++;
-      spawnBurst(s.x,s.y);
-      hud.textContent = `⭐ Stars: ${starsCollected} / ${N_STARS}`;
-      hud.classList.remove('pop');
-      void hud.offsetWidth;
-      hud.classList.add('pop');
-      if (starsCollected===N_STARS)
-        setTimeout(()=>showMsg('🎉 全スター収集完了！リゾートマスター！'),200);
-    }
-  }
-
-  // ── Particles ──
-  for (let i=parts.length-1;i>=0;i--) {
-    const p=parts[i];
-    p.x+=p.vx; p.y+=p.vy; p.vy+=.08;
-    p.life-=.038;
-    if (p.life<=0) parts.splice(i,1);
-  }
-
-  // ── Render ──
-  ctx.clearRect(0,0,canvas.width,canvas.height);
-  const camX = canvas.width/2  - player.x;
-  const camY = canvas.height/2 - player.y;
-
-  ctx.save();
-  ctx.translate(camX,camY);
-
-  // Map
-  ctx.drawImage(mapOC,0,0);
-
-  // Stars
-  for (const s of stars) drawStarObj(s,ts);
-
-  // Particles
-  for (const p of parts) {
-    ctx.globalAlpha=Math.max(0,p.life);
-    ctx.fillStyle=p.color;
-    ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2); ctx.fill();
-  }
-  ctx.globalAlpha=1;
-
-  // Scene (depth sort Y)
-  const scene = [
-    ...palms.map(o   => ({...o,type:'palm'})),
-    ...benches.map(o => ({...o,type:'bench'})),
-    { x:player.x, y:player.y, type:'player' }
-  ].sort((a,b)=>a.y-b.y);
-
-  for (const obj of scene) {
-    if      (obj.type==='palm')   drawPalm(obj.x,obj.y);
-    else if (obj.type==='bench')  drawBench(obj.x,obj.y);
-    else                          drawPlayer(ts);
-  }
-
-  ctx.restore();
-
-  // Fixed HUD
-  drawTouchUI();
-  drawMinimap();
+function loop(ts){
+requestAnimationFrame(loop);
+const dt=Math.min(ts-lastTs,50)/16.667;lastTs=ts;
+// ── Input ──
+player.dashing=keys.has('Shift')||dashTouch;
+let mx=0,my=0;
+if(keys.has('ArrowLeft')||keys.has('a')||keys.has('A')) mx-=1;
+if(keys.has('ArrowRight')||keys.has('d')||keys.has('D')) mx+=1;
+if(keys.has('ArrowUp')||keys.has('w')||keys.has('W')) my-=1;
+if(keys.has('ArrowDown')||keys.has('s')||keys.has('S')) my+=1;
+if(jst.active){mx+=jst.dx;my+=jst.dy;}
+const il=Math.hypot(mx,my);if(il>1){mx/=il;my/=il;}
+// ── Hop mechanic ──
+if(player.hopping){
+player.hopPhase++;
+const t=player.hopPhase/player.hopDur;
+player.x+=player.hopVx;
+player.y+=player.hopVy;
+if(player.hopPhase>=player.hopDur){
+player.hopping=false;
+// land check
+const tr=getTerrain(player.x,player.y);
+if(tr==='cliff'){ showMsg('🧗 崖の上に上がった！ Fキーで宝箱を開けよう',3200); }
 }
-
+} else {
+// Dash-hop trigger: pressing X or touch interact while dashing near cliff edge
+if(interactJustPressed && player.dashing && (keys.has('x')||keys.has('X'))){
+interactJustPressed=false; // consumed
+}
+// Auto hop attempt: dash into cliff
+if(player.dashing){
+for(const c of CLIFFS){
+const dist=Math.hypot(player.x-c.cx,player.y-c.cy);
+if(dist>c.r1.1&&dist<c.r1.8&&(mx!==0||my!==0)){
+// Check approach direction
+const tdx=(c.cx-player.x)/dist,tdy=(c.cy-player.y)/dist;
+const dot=mxtdx+mytdy;
+if(dot>.55){
+// Launch hop
+player.hopping=true;
+player.hopPhase=0;
+player.hopDur=22;
+player.hopVx=tdx3.2;
+player.hopVy=tdy3.2;
+showMsg('🏃 崖ホップ！',1500);
+break;
+}
+}
+}
+}
+if(!player.hopping){
+const terrain=getTerrain(player.x,player.y);
+const onWater=terrain==='water';
+const spd=BASE_SPD*(player.dashing?DASH_MULT:1)(onWater?WATER_MULT:1)dt;
+player.vx=mxspd;player.vy=myspd;
+let nx=player.x+player.vx,ny=player.y+player.vy;
+// Water move unrestricted; on-land: cant enter cliff without hop
+const ntr=getTerrain(nx,ny);
+if(ntr==='cliff'&&!player.hopping){
+// block direct entry
+nx=player.x;ny=player.y;
+}
+player.x=Math.max(PR,Math.min(MAP_W-PR,nx));
+player.y=Math.max(PR,Math.min(MAP_H-PR,ny));
+player.terrain=terrain;
+player.onWater=onWater;
+if(terrain!==prevTerrain){
+if(terrain==='water'){ setOutfit('ジェットスキー'); terrainFlash=30; showMsg('💦 水上バイクで爆走！',2000); }
+else if(prevTerrain==='water'){ setOutfit('サーファー'); terrainFlash=20; }
+else if(terrain==='cliff'){ setOutfit('探検家'); }
+prevTerrain=terrain;
+}
+}
+}
+// ── Collect stars ──
+for(const s of stars30){
+if(!s.col&&Math.hypot(player.x-s.x,player.y-s.y)<COLLECT_R){
+s.col=true;inv.stars++;spawnBurst(s.x,s.y);updateStarHud();
+if(inv.stars>=30) setTimeout(()=>showMsg('🎉 全スター収集！リゾートマスター！',5000),200);
+}
+}
+// ── Collect keys ──
+for(const k of keyItems){
+if(!k.col&&Math.hypot(player.x-k.x,player.y-k.y)<28){
+k.col=true;inv.keys++;updateRightHud();spawnBurst(k.x,k.y,'#aaddff');
+showMsg('🗝️ シルバーキーを入手！',2800);
+}
+}
+// ── NPC interact button ──
+tryInteract();
+// ── Particles ──
+for(let i=parts.length-1;i>=0;i--){
+const p=parts[i];p.x+=p.vx;p.y+=p.vy;p.vy+=.08;p.life-=.036;
+if(p.life<=0) parts.splice(i,1);
+}
+// ── Ripples ──
+for(const r of ripples){
+r.life+=.006;
+if(r.life>1){r.life=0;r.maxR=12+Math.random()*38;let att=0;do{r.x=Math.random()*MAP_W;r.y=Math.random()*MAP_H;att++;}while(isLand(r.x,r.y)&&att<30);}
+}
+// ════════════ RENDER ════════════
+ctx.clearRect(0,0,C.width,C.height);
+const camX=C.width/2-player.x,camY=C.height/2-player.y;
+ctx.save();ctx.translate(camX,camY);
+ctx.drawImage(mapOC,0,0);
+// Animated ripples
+for(const r of ripples){
+const alpha=Math.sin(r.lifeMath.PI)0.28;
+ctx.strokeStyle=rgba(255,255,255,${alpha});ctx.lineWidth=1.5;
+ctx.beginPath();ctx.arc(r.x,r.y,r.maxRr.life,0,Math.PI2);ctx.stroke();
+}
+// Stars
+for(const s of stars30) drawStarObj(s,ts);
+// Key items
+for(const k of keyItems) drawKeyItem(k,ts);
+// Chests
+for(const ch of chests) drawChest(ch,ts);
+// Particles
+ctx.save();
+for(const p of parts){ctx.globalAlpha=Math.max(0,p.life);ctx.fillStyle=p.color;ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);ctx.fill();}
+ctx.globalAlpha=1;ctx.restore();
+// Depth-sorted scene
+const scene=[
+...PALMS.map(o=>({...o,type:'palm'})),
+...BENCHES.map(o=>({...o,type:'bench'})),
+...npcs.map(n=>({...n,type:'npc'})),
+{x:player.x,y:player.y,type:'player'}
+].sort((a,b)=>a.y-b.y);
+for(const obj of scene){
+if(obj.type==='palm') drawPalm(obj.x,obj.y);
+else if(obj.type==='bench') drawBench(obj.x,obj.y);
+else if(obj.type==='npc') drawNPC(obj,ts);
+else drawPlayer(player.x,player.y,player.terrain,ts,player.vx,player.vy);
+}
+ctx.restore();
+// ── Screen flash on terrain change ──
+if(terrainFlash>0){
+ctx.fillStyle=rgba(120,220,255,${terrainFlash/30*.35});
+ctx.fillRect(0,0,C.width,C.height);
+terrainFlash--;
+}
+drawTouchUI();
+drawMinimap();
+}
 requestAnimationFrame(loop);
 </script>
 </body>
